@@ -27,7 +27,9 @@ LLM is used only where automatic matching is not reliable enough:
 - homonym disambiguation
 - residual lemma-level cases
 
-The final artifact always writes `canonical_root` values into `dictionary-source-with-roots.csv`.
+The pipeline has two final artifacts:
+- `data/roots/dictionary-source-with-roots.csv` is the final lemma dictionary with a `roots` field that always stores `canonical_root`
+- `data/roots/root-ipm.csv` is the aggregated root dictionary with total `IPM` summed over every lemma that contains each root
 
 ## Sources
 - `data/dictionary-source.csv`
@@ -282,6 +284,23 @@ Step 7 fails fast if:
 - no final roots can be assembled for a lemma after applying all previous steps
 - a required `.llm.csv` artifact is missing
 
+### 8. `08-build-root-ipm.ts`
+Builds:
+- `data/roots/root-ipm.csv`
+
+Reads:
+- `data/roots/dictionary-source-with-roots.csv`
+
+This step aggregates the final dictionary by the `roots` field and writes:
+- `root`
+- `IPM`
+
+Counting rule:
+- every row from `dictionary-source-with-roots.csv` contributes its own `IPM`
+- if a lemma has multiple roots, its `IPM` is added to each of those roots
+- every root present in the final dictionary is included in the output
+- the final `IPM` for a root is the sum of `IPM` across all lemmas that contain that root
+
 ## Run Order
 
 Install local dependencies once:
@@ -376,6 +395,7 @@ Finish:
 
 ```bash
 node 07-build-dictionary-source-with-roots.ts
+node 08-build-root-ipm.ts
 ```
 
 ## Notes

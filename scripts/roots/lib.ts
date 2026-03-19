@@ -98,6 +98,7 @@ export const ARTIFACTS = {
   llmRootsOriginal: path.join(ROOTS_DIR, 'llm-roots.original.csv'),
   llmRootsLlm: path.join(ROOTS_DIR, 'llm-roots.llm.csv'),
   finalDictionary: path.join(ROOTS_DIR, 'dictionary-source-with-roots.csv'),
+  rootIpm: path.join(ROOTS_DIR, 'root-ipm.csv'),
 } as const;
 
 function normalizeRoot(root: string): string {
