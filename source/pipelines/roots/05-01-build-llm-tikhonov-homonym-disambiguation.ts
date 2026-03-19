@@ -92,7 +92,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/llm-tikhonov-homonym-disambiguation.original.csv',
+      output: 'source/data/roots/llm-tikhonov-homonym-disambiguation.original.csv',
       rows: rows.length,
     },
     null,

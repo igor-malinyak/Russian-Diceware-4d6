@@ -68,7 +68,7 @@ const LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(LIB_DIR, '../..');
 const DATA_ROOT = path.join(PROJECT_ROOT, 'data');
 const ROOTS_DIR = path.join(DATA_ROOT, 'roots');
-const DICTIONARY_PATH = path.join(DATA_ROOT, 'dictionary-source.csv');
+const DICTIONARY_PATH = path.join(ROOTS_DIR, 'dictionary-source.csv');
 const KUZNETSOVA_FIXED_PATH = path.join(ROOTS_DIR, 'lemmas_to_roots_fixed.tsv');
 const TIKHONOV_PATH = path.join(DATA_ROOT, 'external', 'train_Tikhonov_reformat.txt');
 

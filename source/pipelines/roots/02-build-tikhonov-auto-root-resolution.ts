@@ -110,7 +110,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/tikhonov-auto-root-resolution.csv',
+      output: 'source/data/roots/tikhonov-auto-root-resolution.csv',
       rows: rows.length,
     },
     null,

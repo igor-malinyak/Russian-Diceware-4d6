@@ -70,7 +70,7 @@ for (const [key, originalRow] of originalByKey.entries()) {
 console.log(
   JSON.stringify(
     {
-      validated: 'data/roots/llm-tikhonov-root-mapping.llm.csv',
+      validated: 'source/data/roots/llm-tikhonov-root-mapping.llm.csv',
       rows: completed.rows.length,
     },
     null,

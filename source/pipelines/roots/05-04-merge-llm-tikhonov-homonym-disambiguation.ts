@@ -4,8 +4,8 @@ import * as path from 'node:path';
 import { ARTIFACTS, readCsvRows, writeCsv } from './lib.ts';
 
 const chunksDir = path.join(
-  path.dirname(ARTIFACTS.llmTikhonovRootMappingOriginal),
-  'llm-tikhonov-root-mapping.chunks',
+  path.dirname(ARTIFACTS.llmTikhonovHomonymOriginal),
+  'llm-tikhonov-homonym-disambiguation.chunks',
 );
 
 const chunkFiles = fs.existsSync(chunksDir)
@@ -31,14 +31,14 @@ for (const fileName of chunkFiles) {
   rows.push(...parsed.rows);
 }
 
-writeCsv(ARTIFACTS.llmTikhonovRootMappingLlm, header || [], rows);
+writeCsv(ARTIFACTS.llmTikhonovHomonymLlm, header || [], rows);
 
 console.log(
   JSON.stringify(
     {
-      inputDir: 'data/roots/llm-tikhonov-root-mapping.chunks',
+      inputDir: 'source/data/roots/llm-tikhonov-homonym-disambiguation.chunks',
       chunks: chunkFiles.length,
-      output: 'data/roots/llm-tikhonov-root-mapping.llm.csv',
+      output: 'source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv',
       rows: rows.length,
     },
     null,

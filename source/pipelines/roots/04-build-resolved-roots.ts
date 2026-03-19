@@ -107,7 +107,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/resolved-roots.csv',
+      output: 'source/data/roots/resolved-roots.csv',
       rows: rows.length,
     },
     null,

@@ -1,6 +1,6 @@
 [English](README.md) | [Русский](README.ru.md)
 
-# Sources of files in `data/external`
+# Sources of files in `source/data/external`
 
 This directory contains external data used by the project. The origin of each file is listed below.
 

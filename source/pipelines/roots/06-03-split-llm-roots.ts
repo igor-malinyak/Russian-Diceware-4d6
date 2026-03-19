@@ -3,16 +3,16 @@ import * as path from 'node:path';
 
 import { ARTIFACTS, ensureRootsDir, readCsvRows, writeCsv } from './lib.ts';
 
-const CHUNK_SIZE = 300;
+const CHUNK_SIZE = 500;
 const chunksDir = path.join(
-  path.dirname(ARTIFACTS.llmTikhonovHomonymOriginal),
-  'llm-tikhonov-homonym-disambiguation.chunks',
+  path.dirname(ARTIFACTS.llmRootsOriginal),
+  'llm-roots.chunks',
 );
 
 ensureRootsDir();
 fs.mkdirSync(chunksDir, { recursive: true });
 
-const parsed = readCsvRows(ARTIFACTS.llmTikhonovHomonymOriginal);
+const parsed = readCsvRows(ARTIFACTS.llmRootsOriginal);
 const chunkCount = Math.ceil(parsed.rows.length / CHUNK_SIZE);
 
 for (let index = 0; index < chunkCount; index += 1) {
@@ -20,14 +20,8 @@ for (let index = 0; index < chunkCount; index += 1) {
   const end = start + CHUNK_SIZE;
   const chunkRows = parsed.rows.slice(start, end);
   const chunkId = String(index + 1).padStart(3, '0');
-  const originalPath = path.join(
-    chunksDir,
-    `llm-tikhonov-homonym-disambiguation.chunk-${chunkId}.original.csv`,
-  );
-  const llmPath = path.join(
-    chunksDir,
-    `llm-tikhonov-homonym-disambiguation.chunk-${chunkId}.llm.csv`,
-  );
+  const originalPath = path.join(chunksDir, `llm-roots.chunk-${chunkId}.original.csv`);
+  const llmPath = path.join(chunksDir, `llm-roots.chunk-${chunkId}.llm.csv`);
 
   writeCsv(originalPath, parsed.header, chunkRows);
   if (!fs.existsSync(llmPath)) {
@@ -52,10 +46,10 @@ for (let index = 0; index < chunkCount; index += 1) {
 console.log(
   JSON.stringify(
     {
-      input: 'data/roots/llm-tikhonov-homonym-disambiguation.original.csv',
+      input: 'source/data/roots/llm-roots.original.csv',
       chunkSize: CHUNK_SIZE,
       chunkCount,
-      outputDir: 'data/roots/llm-tikhonov-homonym-disambiguation.chunks',
+      outputDir: 'source/data/roots/llm-roots.chunks',
     },
     null,
     2,

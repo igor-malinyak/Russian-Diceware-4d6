@@ -6,16 +6,16 @@ Resolve cases where the lemma is already aligned to a Kuznetsova homonym family,
 This step outputs exact `root` values, not `canonical_root`.
 
 ## Input Files
-- `data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
-- `data/roots/kuznetsova-roots.csv`
+- `source/data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
+- `source/data/roots/kuznetsova-roots.csv`
 
 These helper scripts are also part of the task context:
-- `scripts/roots/05-03-split-llm-tikhonov-homonym-disambiguation.ts`
-- `scripts/roots/05-04-merge-llm-tikhonov-homonym-disambiguation.ts`
+- `source/pipelines/roots/05-03-split-llm-tikhonov-homonym-disambiguation.ts`
+- `source/pipelines/roots/05-04-merge-llm-tikhonov-homonym-disambiguation.ts`
 
 ## Output Files
-- chunk files: `data/roots/llm-tikhonov-homonym-disambiguation.chunks/llm-tikhonov-homonym-disambiguation.chunk-XXX.llm.csv`
-- merged file: `data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
+- chunk files: `source/data/roots/llm-tikhonov-homonym-disambiguation.chunks/llm-tikhonov-homonym-disambiguation.chunk-XXX.llm.csv`
+- merged file: `source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
 
 ## Allowed Changes
 Fill only:
@@ -52,22 +52,22 @@ The `kuznetsova_homonym_candidates` field is formatted as one or more items like
 If there are multiple unresolved positions, they are separated by `; `.
 
 ## Required Workflow
-1. Start from `data/roots/llm-tikhonov-homonym-disambiguation.original.csv`.
-2. Use `scripts/roots/05-03-split-llm-tikhonov-homonym-disambiguation.ts` to split it into chunk pairs under `data/roots/llm-tikhonov-homonym-disambiguation.chunks`.
+1. Start from `source/data/roots/llm-tikhonov-homonym-disambiguation.original.csv`.
+2. Use `source/pipelines/roots/05-03-split-llm-tikhonov-homonym-disambiguation.ts` to split it into chunk pairs under `source/data/roots/llm-tikhonov-homonym-disambiguation.chunks`.
 3. Process every generated chunk `.original.csv`.
 4. If your environment supports worker subagents, you must use them: assign exactly one worker subagent to each chunk `.original.csv`.
 5. Each worker subagent must read only:
    - its assigned chunk `.original.csv`
-   - `data/roots/kuznetsova-roots.csv`
+   - `source/data/roots/kuznetsova-roots.csv`
 6. Each worker subagent must write only the matching chunk `.llm.csv` for its own chunk.
-7. The top-level agent must pass each worker subagent the existing sections `## Allowed Changes`, `## Row Structure`, `## Execution Discipline`, `## Using data/roots/kuznetsova-roots.csv`, `## How To Solve Each Chunk`, `## Important Rules`, and `## Worker Subagent Contract` verbatim.
+7. The top-level agent must pass each worker subagent the existing sections `## Allowed Changes`, `## Row Structure`, `## Execution Discipline`, `## Using source/data/roots/kuznetsova-roots.csv`, `## How To Solve Each Chunk`, `## Important Rules`, and `## Worker Subagent Contract` verbatim.
 8. The top-level agent is responsible only for orchestration:
    - split the source file
    - assign one chunk per worker subagent
    - ensure every chunk is completed
    - merge the finished chunk `.llm.csv` files
 9. If the environment limits concurrent worker subagents, process chunks in batches, but still keep exactly one worker subagent per chunk.
-10. After all chunks are filled, use `scripts/roots/05-04-merge-llm-tikhonov-homonym-disambiguation.ts` to assemble `data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`.
+10. After all chunks are filled, use `source/pipelines/roots/05-04-merge-llm-tikhonov-homonym-disambiguation.ts` to assemble `source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`.
 
 ## Execution Discipline
 - Follow the chunk workflow exactly: split, process every chunk, then merge.
@@ -82,8 +82,8 @@ If there are multiple unresolved positions, they are separated by `; `.
 - Do not invent any extra decision rules, thresholds, fallback heuristics, or pipeline rules beyond what is explicitly stated in this prompt.
 - If you cannot honestly complete a chunk by row-by-row semantic review, stop and report that chunk as incomplete instead of approximating.
 
-## Using `data/roots/kuznetsova-roots.csv`
-Use `data/roots/kuznetsova-roots.csv` as the semantic reference for candidate roots.
+## Using `source/data/roots/kuznetsova-roots.csv`
+Use `source/data/roots/kuznetsova-roots.csv` as the semantic reference for candidate roots.
 
 Relevant fields there are:
 - `root` — the exact Kuznetsova root candidate
@@ -91,7 +91,7 @@ Relevant fields there are:
 - `examples` — example lemmas for that root
 
 When choosing between homonymous candidates:
-- look up each candidate root in `data/roots/kuznetsova-roots.csv`
+- look up each candidate root in `source/data/roots/kuznetsova-roots.csv`
 - inspect the `examples` field for each candidate
 - use those example lemmas as the main semantic evidence for what that homonymous root means
 - choose the candidate whose examples best match the meaning of the target lemma
@@ -101,7 +101,7 @@ When choosing between homonymous candidates:
 2. For each row, read the lemma, its part of speech, and the already known `deterministic_roots`.
 3. Treat `deterministic_roots` as fixed: they already belong to the lemma and do not need disambiguation.
 4. For each item in `kuznetsova_homonym_candidates`, choose exactly one candidate `root`.
-5. Use `data/roots/kuznetsova-roots.csv` to inspect the candidate roots:
+5. Use `source/data/roots/kuznetsova-roots.csv` to inspect the candidate roots:
    - compare their meanings through the `examples` field
    - choose by semantic fit to the lemma, not by string similarity alone
 6. If multiple candidate roots share the same base but differ by homonym number, choose the numbered `root` whose meaning matches the lemma.
@@ -114,7 +114,7 @@ When choosing between homonymous candidates:
 - Do not output `canonical_root` here.
 - Keep already known deterministic roots in the final list.
 - If multiple roots belong to the lemma, include all of them in the final `roots` field.
-- Use the `examples` field from `data/roots/kuznetsova-roots.csv` as the main semantic evidence for candidate roots.
+- Use the `examples` field from `source/data/roots/kuznetsova-roots.csv` as the main semantic evidence for candidate roots.
 - Do not invent new roots on this step.
 - Do not use `root_base`, homonym numbering, or string similarity as a shortcut for semantic review.
 - Do not introduce new rules or hidden heuristics beyond the ones stated above.

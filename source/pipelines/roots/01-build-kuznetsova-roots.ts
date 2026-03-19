@@ -155,7 +155,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/kuznetsova-roots.csv',
+      output: 'source/data/roots/kuznetsova-roots.csv',
       rows: rows.length,
     },
     null,

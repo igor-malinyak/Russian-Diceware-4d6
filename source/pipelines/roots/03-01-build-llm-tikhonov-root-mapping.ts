@@ -50,7 +50,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/llm-tikhonov-root-mapping.original.csv',
+      output: 'source/data/roots/llm-tikhonov-root-mapping.original.csv',
       rows: rows.length,
     },
     null,

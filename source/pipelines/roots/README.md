@@ -3,7 +3,7 @@
 # Root identification pipeline
 
 ## Method
-This pipeline assigns roots to lemmas from `data/dictionary-source.csv`.
+This pipeline assigns roots to lemmas from `source/data/roots/dictionary-source.csv`.
 
 It combines two root systems:
 - Kuznetsova gives the main system of known roots and homonym distinctions.
@@ -28,32 +28,32 @@ LLM is used only where automatic matching is not reliable enough:
 - residual lemma-level cases
 
 The pipeline has two final artifacts:
-- `data/roots/dictionary-source-with-roots.csv` is the final lemma dictionary with a `roots` field that always stores `canonical_root`
-- `data/roots/root-ipm.csv` is the aggregated root dictionary with total `IPM` summed over every lemma that contains each root
+- `source/data/roots/dictionary-source-with-roots.csv` is the final lemma dictionary with a `roots` field that always stores `canonical_root`
+- `source/data/roots/root-ipm.csv` is the aggregated root dictionary with total `IPM` summed over every lemma that contains each root
 
 ## Sources
-- `data/dictionary-source.csv` - a filtered version of [`data/external/freqrnc2011.csv`](../../data/external/README.md#freqrnc2011csv), keeping only nouns, verbs, adjectives, and adverbs.
-- `data/roots/lemmas_to_roots_fixed.tsv` - a manually corrected copy of [`data/external/lemmas_to_roots.tsv`](../../data/external/README.md#lemmas_to_rootstsv); typos and OCR errors found during matching were fixed.
-- `data/roots/root_groups_fixed.txt` - a manually corrected copy of [`data/external/root_groups.txt`](../../data/external/README.md#root_groupstxt); typos and OCR errors found during matching were fixed.
-- `data/external/train_Tikhonov_reformat.txt` - a Tikhonov-derived morpheme segmentation training dataset; see its [source note](../../data/external/README.md#train_tikhonov_reformattxt).
+- `source/data/roots/dictionary-source.csv` - a filtered version of [`source/data/external/freqrnc2011.csv`](../../data/external/README.md#freqrnc2011csv), keeping only nouns, verbs, adjectives, and adverbs.
+- `source/data/roots/lemmas_to_roots_fixed.tsv` - a manually corrected copy of [`source/data/external/lemmas_to_roots.tsv`](../../data/external/README.md#lemmas_to_rootstsv); typos and OCR errors found during matching were fixed.
+- `source/data/roots/root_groups_fixed.txt` - a manually corrected copy of [`source/data/external/root_groups.txt`](../../data/external/README.md#root_groupstxt); typos and OCR errors found during matching were fixed.
+- `source/data/external/train_Tikhonov_reformat.txt` - a Tikhonov-derived morpheme segmentation training dataset; see its [source note](../../data/external/README.md#train_tikhonov_reformattxt).
 
 ## Example selection
 When a root artifact stores example lemmas:
 - examples are sorted by descending `IPM`
 - top 10 examples are kept
-- if a lemma is missing from `data/dictionary-source.csv`, its `IPM` is treated as `0`
+- if a lemma is missing from `source/data/roots/dictionary-source.csv`, its `IPM` is treated as `0`
 - such lemmas are still eligible to appear in examples
 
 ## Steps
 
 ### 1. `01-build-kuznetsova-roots.ts`
 Builds:
-- `data/roots/kuznetsova-roots.csv`
+- `source/data/roots/kuznetsova-roots.csv`
 
 Reads:
-- `data/dictionary-source.csv`
-- `data/roots/lemmas_to_roots_fixed.tsv`
-- `data/roots/root_groups_fixed.txt`
+- `source/data/roots/dictionary-source.csv`
+- `source/data/roots/lemmas_to_roots_fixed.tsv`
+- `source/data/roots/root_groups_fixed.txt`
 
 Produces a root registry for the Kuznetsova system with:
 - `root`
@@ -66,13 +66,13 @@ This step is the only place where the mapping from Kuznetsova `root` to `canonic
 
 ### 2. `02-build-tikhonov-auto-root-resolution.ts`
 Builds:
-- `data/roots/tikhonov-auto-root-resolution.csv`
+- `source/data/roots/tikhonov-auto-root-resolution.csv`
 
 Reads:
-- `data/dictionary-source.csv`
-- `data/roots/lemmas_to_roots_fixed.tsv`
-- `data/external/train_Tikhonov_reformat.txt`
-- `data/roots/kuznetsova-roots.csv`
+- `source/data/roots/dictionary-source.csv`
+- `source/data/roots/lemmas_to_roots_fixed.tsv`
+- `source/data/external/train_Tikhonov_reformat.txt`
+- `source/data/roots/kuznetsova-roots.csv`
 
 This step learns conservative automatic mappings from:
 - `tikhonov_root`
@@ -92,7 +92,7 @@ Important:
 
 #### 3.1. `03-01-build-llm-tikhonov-root-mapping.ts`
 Builds:
-- `data/roots/llm-tikhonov-root-mapping.original.csv`
+- `source/data/roots/llm-tikhonov-root-mapping.original.csv`
 
 This file contains only Tikhonov roots with zero automatic candidates.
 It excludes roots with conflicting automatic evidence, which stay unresolved until lemma-level handling.
@@ -107,22 +107,22 @@ Important:
 - this task handles roots with no reliable automatic candidate and resolves them as `mapped`, `new_root`, or `lemma_level_conflict`
 - the LLM may still conclude `lemma_level_conflict` if the lemmas do not support one consistent root-level decision
 - this prompt explicitly covers split and merge workflow
-- context file for LLM: `data/roots/kuznetsova-roots.csv`
+- context file for LLM: `source/data/roots/kuznetsova-roots.csv`
 
 #### 3.3. `03-03-split-llm-tikhonov-root-mapping.ts`
 Required substep of the LLM workflow.
 
 Splits:
-- `data/roots/llm-tikhonov-root-mapping.original.csv`
+- `source/data/roots/llm-tikhonov-root-mapping.original.csv`
 
 Into chunk pairs under:
-- `data/roots/llm-tikhonov-root-mapping.chunks`
+- `source/data/roots/llm-tikhonov-root-mapping.chunks`
 
 #### 3.4. `03-04-merge-llm-tikhonov-root-mapping.ts`
 Required substep of the LLM workflow.
 
 Merges filled chunk `.llm.csv` files into:
-- `data/roots/llm-tikhonov-root-mapping.llm.csv`
+- `source/data/roots/llm-tikhonov-root-mapping.llm.csv`
 
 #### 3.5. `03-05-validate-llm-tikhonov-root-mapping.ts`
 Optional validation helper.
@@ -134,14 +134,14 @@ Checks that the `.llm.csv` result:
 
 ### 4. `04-build-resolved-roots.ts`
 Builds:
-- `data/roots/resolved-roots.csv`
+- `source/data/roots/resolved-roots.csv`
 
 Reads:
-- `data/dictionary-source.csv`
-- `data/roots/lemmas_to_roots_fixed.tsv`
-- `data/external/train_Tikhonov_reformat.txt`
-- `data/roots/kuznetsova-roots.csv`
-- `data/roots/llm-tikhonov-root-mapping.llm.csv`
+- `source/data/roots/dictionary-source.csv`
+- `source/data/roots/lemmas_to_roots_fixed.tsv`
+- `source/data/external/train_Tikhonov_reformat.txt`
+- `source/data/roots/kuznetsova-roots.csv`
+- `source/data/roots/llm-tikhonov-root-mapping.llm.csv`
 
 This artifact contains roots that are already known after step 3 (root-level LLM mapping):
 - all Kuznetsova roots
@@ -170,7 +170,7 @@ Rule:
 
 #### 5.1. `05-01-build-llm-tikhonov-homonym-disambiguation.ts`
 Builds:
-- `data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
+- `source/data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
 
 This step prepares lemma-level cases where the correct homonym `root` variant must be chosen.
 It includes only pure homonym-disambiguation cases where all non-homonym roots are already resolved.
@@ -183,22 +183,22 @@ Important:
 - output must contain exact `root` values
 - conversion to `canonical_root` happens later via `resolved-roots.csv`
 - this prompt explicitly covers split and merge workflow
-- context file for LLM: `data/roots/kuznetsova-roots.csv`
+- context file for LLM: `source/data/roots/kuznetsova-roots.csv`
 
 #### 5.3. `05-03-split-llm-tikhonov-homonym-disambiguation.ts`
 Required substep of the LLM workflow.
 
 Splits:
-- `data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
+- `source/data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
 
 Into chunk pairs under:
-- `data/roots/llm-tikhonov-homonym-disambiguation.chunks`
+- `source/data/roots/llm-tikhonov-homonym-disambiguation.chunks`
 
 #### 5.4. `05-04-merge-llm-tikhonov-homonym-disambiguation.ts`
 Required substep of the LLM workflow.
 
 Merges filled chunk `.llm.csv` files into:
-- `data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
+- `source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
 
 #### 5.5. `05-05-validate-llm-tikhonov-homonym-disambiguation.ts`
 Optional validation helper.
@@ -207,7 +207,7 @@ Optional validation helper.
 
 #### 6.1. `06-01-build-llm-roots.ts`
 Builds:
-- `data/roots/llm-roots.original.csv`
+- `source/data/roots/llm-roots.original.csv`
 
 This step prepares the remaining lemma-level cases that were not solved by:
 - direct Kuznetsova coverage
@@ -231,39 +231,39 @@ Important:
 - later it will behave as `canonical_root = root`
 - the input rows may also include already fixed deterministic roots and separate homonym-candidate positions
 - this prompt explicitly covers split and merge workflow
-- context file for LLM: `data/roots/resolved-roots.csv`
+- context file for LLM: `source/data/roots/resolved-roots.csv`
 
 #### 6.3. `06-03-split-llm-roots.ts`
 Required substep of the LLM workflow.
 
 Splits:
-- `data/roots/llm-roots.original.csv`
+- `source/data/roots/llm-roots.original.csv`
 
 Into chunk pairs under:
-- `data/roots/llm-roots.chunks`
+- `source/data/roots/llm-roots.chunks`
 
 #### 6.4. `06-04-merge-llm-roots.ts`
 Required substep of the LLM workflow.
 
 Merges filled chunk `.llm.csv` files into:
-- `data/roots/llm-roots.llm.csv`
+- `source/data/roots/llm-roots.llm.csv`
 
 #### 6.5. `06-05-validate-llm-roots.ts`
 Optional validation helper.
 
 ### 7. `07-build-dictionary-source-with-roots.ts`
 Builds:
-- `data/roots/dictionary-source-with-roots.csv`
+- `source/data/roots/dictionary-source-with-roots.csv`
 
 Reads:
-- `data/dictionary-source.csv`
-- `data/roots/lemmas_to_roots_fixed.tsv`
-- `data/external/train_Tikhonov_reformat.txt`
-- `data/roots/tikhonov-auto-root-resolution.csv`
-- `data/roots/llm-tikhonov-root-mapping.llm.csv`
-- `data/roots/resolved-roots.csv`
-- `data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
-- `data/roots/llm-roots.llm.csv`
+- `source/data/roots/dictionary-source.csv`
+- `source/data/roots/lemmas_to_roots_fixed.tsv`
+- `source/data/external/train_Tikhonov_reformat.txt`
+- `source/data/roots/tikhonov-auto-root-resolution.csv`
+- `source/data/roots/llm-tikhonov-root-mapping.llm.csv`
+- `source/data/roots/resolved-roots.csv`
+- `source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
+- `source/data/roots/llm-roots.llm.csv`
 
 Final rule:
 - the final `roots` column always uses `canonical_root`
@@ -286,10 +286,10 @@ Step 7 fails fast if:
 
 ### 8. `08-build-root-ipm.ts`
 Builds:
-- `data/roots/root-ipm.csv`
+- `source/data/roots/root-ipm.csv`
 
 Reads:
-- `data/roots/dictionary-source-with-roots.csv`
+- `source/data/roots/dictionary-source-with-roots.csv`
 
 This step aggregates the final dictionary by the `roots` field and writes:
 - `root`
@@ -306,7 +306,7 @@ Counting rule:
 Install local dependencies once:
 
 ```bash
-cd scripts/roots
+cd source/pipelines/roots
 npm install
 ```
 
@@ -320,8 +320,8 @@ node 03-01-build-llm-tikhonov-root-mapping.ts
 
 Use LLM for the root-mapping step:
 - give the model prompt `03-02-prompt-llm-tikhonov-root-mapping.md`
-- give it `data/roots/llm-tikhonov-root-mapping.original.csv`
-- provide `data/roots/kuznetsova-roots.csv` as context
+- give it `source/data/roots/llm-tikhonov-root-mapping.original.csv`
+- provide `source/data/roots/kuznetsova-roots.csv` as context
 - provide these helper scripts as context:
   - `03-03-split-llm-tikhonov-root-mapping.ts`
   - `03-04-merge-llm-tikhonov-root-mapping.ts`
@@ -330,7 +330,7 @@ Use LLM for the root-mapping step:
   - process every generated chunk `.original.csv`
   - write the matching chunk `.llm.csv` files
   - run the merge step
-  - leave the merged result in `data/roots/llm-tikhonov-root-mapping.llm.csv`
+  - leave the merged result in `source/data/roots/llm-tikhonov-root-mapping.llm.csv`
 
 Optionally validate:
 
@@ -347,8 +347,8 @@ node 05-01-build-llm-tikhonov-homonym-disambiguation.ts
 
 Use LLM for the homonym-disambiguation step:
 - give the model prompt `05-02-prompt-llm-tikhonov-homonym-disambiguation.md`
-- give it `data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
-- provide `data/roots/kuznetsova-roots.csv` as context
+- give it `source/data/roots/llm-tikhonov-homonym-disambiguation.original.csv`
+- provide `source/data/roots/kuznetsova-roots.csv` as context
 - provide these helper scripts as context:
   - `05-03-split-llm-tikhonov-homonym-disambiguation.ts`
   - `05-04-merge-llm-tikhonov-homonym-disambiguation.ts`
@@ -357,7 +357,7 @@ Use LLM for the homonym-disambiguation step:
   - process every generated chunk `.original.csv`
   - write the matching chunk `.llm.csv` files
   - run the merge step
-  - leave the merged result in `data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
+  - leave the merged result in `source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv`
 
 Optionally validate:
 
@@ -373,8 +373,8 @@ node 06-01-build-llm-roots.ts
 
 Use LLM for the residual-roots step:
 - give the model prompt `06-02-prompt-llm-roots.md`
-- give it `data/roots/llm-roots.original.csv`
-- provide `data/roots/resolved-roots.csv` as context
+- give it `source/data/roots/llm-roots.original.csv`
+- provide `source/data/roots/resolved-roots.csv` as context
 - provide these helper scripts as context:
   - `06-03-split-llm-roots.ts`
   - `06-04-merge-llm-roots.ts`
@@ -383,7 +383,7 @@ Use LLM for the residual-roots step:
   - process every generated chunk `.original.csv`
   - write the matching chunk `.llm.csv` files
   - run the merge step
-  - leave the merged result in `data/roots/llm-roots.llm.csv`
+  - leave the merged result in `source/data/roots/llm-roots.llm.csv`
 
 Optionally validate:
 
@@ -399,6 +399,6 @@ node 08-build-root-ipm.ts
 ```
 
 ## Notes
-- Do not modify `data/dictionary-source.csv`.
+- Do not modify `source/data/roots/dictionary-source.csv`.
 - The main LLM output fields are always written into `.llm.csv` files, never into `.original.csv`.
 - Validator scripts are optional helpers. Main pipeline steps read `.llm.csv` files directly.

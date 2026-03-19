@@ -9,16 +9,16 @@ For each `tikhonov_root`, decide whether it:
 This is a root-level task. Do not output `canonical_root` here.
 
 ## Input Files
-- `data/roots/llm-tikhonov-root-mapping.original.csv`
-- `data/roots/kuznetsova-roots.csv`
+- `source/data/roots/llm-tikhonov-root-mapping.original.csv`
+- `source/data/roots/kuznetsova-roots.csv`
 
 These helper scripts are also part of the task context:
-- `scripts/roots/03-03-split-llm-tikhonov-root-mapping.ts`
-- `scripts/roots/03-04-merge-llm-tikhonov-root-mapping.ts`
+- `source/pipelines/roots/03-03-split-llm-tikhonov-root-mapping.ts`
+- `source/pipelines/roots/03-04-merge-llm-tikhonov-root-mapping.ts`
 
 ## Output Files
-- chunk files: `data/roots/llm-tikhonov-root-mapping.chunks/llm-tikhonov-root-mapping.chunk-XXX.llm.csv`
-- merged file: `data/roots/llm-tikhonov-root-mapping.llm.csv`
+- chunk files: `source/data/roots/llm-tikhonov-root-mapping.chunks/llm-tikhonov-root-mapping.chunk-XXX.llm.csv`
+- merged file: `source/data/roots/llm-tikhonov-root-mapping.llm.csv`
 
 ## Allowed Changes
 Fill only:
@@ -37,13 +37,13 @@ Do not change:
 - `lemma_level_conflict`
 
 ## Required Workflow
-1. Start from `data/roots/llm-tikhonov-root-mapping.original.csv`.
-2. Use `scripts/roots/03-03-split-llm-tikhonov-root-mapping.ts` to split it into chunk pairs under `data/roots/llm-tikhonov-root-mapping.chunks`.
+1. Start from `source/data/roots/llm-tikhonov-root-mapping.original.csv`.
+2. Use `source/pipelines/roots/03-03-split-llm-tikhonov-root-mapping.ts` to split it into chunk pairs under `source/data/roots/llm-tikhonov-root-mapping.chunks`.
 3. Process every generated chunk `.original.csv`.
 4. If your environment supports worker subagents, you must use them: assign exactly one worker subagent to each chunk `.original.csv`.
 5. Each worker subagent must read only:
    - its assigned chunk `.original.csv`
-   - `data/roots/kuznetsova-roots.csv`
+   - `source/data/roots/kuznetsova-roots.csv`
 6. Each worker subagent must write only the matching chunk `.llm.csv` for its own chunk.
 7. The top-level agent must pass each worker subagent the existing sections `## Allowed Changes`, `## Decision Values`, `## Execution Discipline`, `## How To Solve Each Chunk`, `## Important Rules`, and `## Worker Subagent Contract` verbatim.
 8. The top-level agent is responsible only for orchestration:
@@ -52,7 +52,7 @@ Do not change:
    - ensure every chunk is completed
    - merge the finished chunk `.llm.csv` files
 9. If the environment limits concurrent worker subagents, process chunks in batches, but still keep exactly one worker subagent per chunk.
-10. After all chunks are filled, use `scripts/roots/03-04-merge-llm-tikhonov-root-mapping.ts` to assemble `data/roots/llm-tikhonov-root-mapping.llm.csv`.
+10. After all chunks are filled, use `source/pipelines/roots/03-04-merge-llm-tikhonov-root-mapping.ts` to assemble `source/data/roots/llm-tikhonov-root-mapping.llm.csv`.
 
 ## Execution Discipline
 - Follow the chunk workflow exactly: split, process every chunk, then merge.
@@ -71,7 +71,7 @@ Do not change:
 1. Read one chunk `.original.csv`.
 2. For each row in that chunk, treat `tikhonov_root` as the object of analysis.
 3. Use `lemmas` as the main evidence. This field contains the known Tikhonov lemmas for that root.
-4. Compare those lemmas semantically against `data/roots/kuznetsova-roots.csv`.
+4. Compare those lemmas semantically against `source/data/roots/kuznetsova-roots.csv`.
 5. Decide that specific row only after reading that row and performing that comparison.
 6. Then choose exactly one outcome:
    - `mapped` if the lemmas support one existing Kuznetsova `root`
@@ -82,13 +82,13 @@ Do not change:
 ## Important Rules
 - Work on the level of `root`, not `canonical_root`.
 - Use `lemmas` as the primary evidence.
-- Use the `examples` field in `data/roots/kuznetsova-roots.csv` as the main evidence for an existing Kuznetsova root.
+- Use the `examples` field in `source/data/roots/kuznetsova-roots.csv` as the main evidence for an existing Kuznetsova root.
 - Match by meaning and lexical family, not by superficial string similarity alone.
 - If the lemmas do not support one consistent root-level decision, use `lemma_level_conflict`.
 - When `decision = lemma_level_conflict`, leave `root` empty.
 - If you are unsure between a weak mapping and a truly new root, prefer `new_root` for that analyzed row only.
 - The rule above is not a license for dataset-level defaults, mass prefill, or chunk-level bulk decisions.
-- `mapped` must point to one existing exact Kuznetsova `root` from `data/roots/kuznetsova-roots.csv`.
+- `mapped` must point to one existing exact Kuznetsova `root` from `source/data/roots/kuznetsova-roots.csv`.
 - `new_root` must fill `root` with the new exact root you are introducing for that row.
 - Only `lemma_level_conflict` may leave `root` empty.
 - Do not invent or alter homonym numbering for existing Kuznetsova roots.

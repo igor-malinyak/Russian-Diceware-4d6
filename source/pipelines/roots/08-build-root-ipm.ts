@@ -20,7 +20,7 @@ function parseIpm(value: string): number {
 }
 
 if (!fs.existsSync(ARTIFACTS.finalDictionary)) {
-  throw new Error('Missing data/roots/dictionary-source-with-roots.csv. Run step 07 first.');
+  throw new Error('Missing source/data/roots/dictionary-source-with-roots.csv. Run step 07 first.');
 }
 
 const parsed = readCsvRows(ARTIFACTS.finalDictionary);
@@ -55,7 +55,7 @@ writeCsv(ARTIFACTS.rootIpm, ['root', 'IPM'], rows);
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/root-ipm.csv',
+      output: 'source/data/roots/root-ipm.csv',
       rows: rows.length,
     },
     null,

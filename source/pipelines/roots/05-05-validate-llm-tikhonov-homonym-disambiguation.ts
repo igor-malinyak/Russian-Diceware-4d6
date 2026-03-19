@@ -1,8 +1,8 @@
 import { ARTIFACTS, validateLlmArtifact } from './lib.ts';
 
 const result = validateLlmArtifact(
-  ARTIFACTS.llmRootsOriginal,
-  ARTIFACTS.llmRootsLlm,
+  ARTIFACTS.llmTikhonovHomonymOriginal,
+  ARTIFACTS.llmTikhonovHomonymLlm,
   'Number',
   ['roots'],
 );
@@ -10,7 +10,7 @@ const result = validateLlmArtifact(
 console.log(
   JSON.stringify(
     {
-      validated: 'data/roots/llm-roots.llm.csv',
+      validated: 'source/data/roots/llm-tikhonov-homonym-disambiguation.llm.csv',
       rows: result.rows,
     },
     null,

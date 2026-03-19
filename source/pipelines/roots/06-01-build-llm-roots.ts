@@ -113,7 +113,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/llm-roots.original.csv',
+      output: 'source/data/roots/llm-roots.original.csv',
       rows: rows.length,
     },
     null,

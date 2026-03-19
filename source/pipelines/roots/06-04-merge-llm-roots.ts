@@ -36,9 +36,9 @@ writeCsv(ARTIFACTS.llmRootsLlm, header || [], rows);
 console.log(
   JSON.stringify(
     {
-      inputDir: 'data/roots/llm-roots.chunks',
+      inputDir: 'source/data/roots/llm-roots.chunks',
       chunks: chunkFiles.length,
-      output: 'data/roots/llm-roots.llm.csv',
+      output: 'source/data/roots/llm-roots.llm.csv',
       rows: rows.length,
     },
     null,

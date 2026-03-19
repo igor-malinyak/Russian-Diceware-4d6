@@ -6,19 +6,19 @@ Resolve the lemma-level cases listed in the input file.
 This step outputs `root` values, not `canonical_root`.
 
 ## Input Files
-- `data/roots/llm-roots.original.csv`
-- `data/roots/resolved-roots.csv`
+- `source/data/roots/llm-roots.original.csv`
+- `source/data/roots/resolved-roots.csv`
 
 These helper scripts are also part of the task context:
-- `scripts/roots/06-03-split-llm-roots.ts`
-- `scripts/roots/06-04-merge-llm-roots.ts`
+- `source/pipelines/roots/06-03-split-llm-roots.ts`
+- `source/pipelines/roots/06-04-merge-llm-roots.ts`
 
 ## Output Files
-- chunk files: `data/roots/llm-roots.chunks/llm-roots.chunk-XXX.llm.csv`
-- merged file: `data/roots/llm-roots.llm.csv`
+- chunk files: `source/data/roots/llm-roots.chunks/llm-roots.chunk-XXX.llm.csv`
+- merged file: `source/data/roots/llm-roots.llm.csv`
 
 ## Reference File Structure
-`data/roots/resolved-roots.csv` contains these fields:
+`source/data/roots/resolved-roots.csv` contains these fields:
 - `root` — the exact root form that should be written to output
 - `root_base` — the same root without a homonym number suffix
 - `canonical_root` — final normalized form used later in the pipeline
@@ -86,13 +86,13 @@ Use `notes` like this:
 - do not treat it as a decision rule by itself
 
 ## Required Workflow
-1. Start from `data/roots/llm-roots.original.csv`.
-2. Use `scripts/roots/06-03-split-llm-roots.ts` to split it into chunk pairs under `data/roots/llm-roots.chunks`.
+1. Start from `source/data/roots/llm-roots.original.csv`.
+2. Use `source/pipelines/roots/06-03-split-llm-roots.ts` to split it into chunk pairs under `source/data/roots/llm-roots.chunks`.
 3. Process every generated chunk `.original.csv`.
 4. If your environment supports worker subagents, you must use them: assign exactly one worker subagent to each chunk `.original.csv`.
 5. Each worker subagent must read only:
    - its assigned chunk `.original.csv`
-   - `data/roots/resolved-roots.csv`
+   - `source/data/roots/resolved-roots.csv`
 6. Each worker subagent must write only the matching chunk `.llm.csv` for its own chunk.
 7. The top-level agent must pass each worker subagent the existing sections `## Allowed Changes`, `## Row Structure`, `## Execution Discipline`, `## How To Solve Each Chunk`, `## Important Rules`, and `## Worker Subagent Contract` verbatim.
 8. The top-level agent is responsible only for orchestration:
@@ -101,7 +101,7 @@ Use `notes` like this:
    - ensure every chunk is completed
    - merge the finished chunk `.llm.csv` files
 9. If the environment limits concurrent worker subagents, process chunks in batches, but still keep exactly one worker subagent per chunk.
-10. After all chunks are filled, use `scripts/roots/06-04-merge-llm-roots.ts` to assemble `data/roots/llm-roots.llm.csv`.
+10. After all chunks are filled, use `source/pipelines/roots/06-04-merge-llm-roots.ts` to assemble `source/data/roots/llm-roots.llm.csv`.
 
 ## Execution Discipline
 - Follow the chunk workflow exactly: split, process every chunk, then merge.

@@ -164,7 +164,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      output: 'data/roots/dictionary-source-with-roots.csv',
+      output: 'source/data/roots/dictionary-source-with-roots.csv',
       rows: state.dictionaryRows.length,
     },
     null,
