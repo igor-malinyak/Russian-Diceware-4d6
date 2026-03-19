@@ -11,7 +11,7 @@ This pipeline adds three semantic attributes to frequent lemmas:
 First, it builds a working lemma list from the dictionary with roots:
 - only lemmas with one root are kept
 - the most frequent roots are selected
-- for each such root, the most frequent lemmas are kept
+- for each such root, the most frequent lemmas are kept, with the most frequent words in the dictionary included additionally
 
 This produces a compact and representative slice of the dictionary in `dictionary-top.csv`.
 
@@ -95,6 +95,7 @@ Step logic:
 - exception: if a row has multiple roots but all of them are homonym variants of the same base root, the row is split into multiple rows, one per `root`
 - only the 5000 most frequent roots by `IPM` from `source/data/roots/root-ipm.csv` are kept
 - for each root, the 10 most frequent lemmas by `IPM` are kept
+- if a lemma belongs to the global top 5000 by `IPM` across the whole dictionary, it is included even above the limit of 10 rows per root
 - if the same `Lemma` + `root` pair appears in multiple rows, only the row with the highest `IPM` is kept
 - final ordering is:
   - rows grouped by `root`

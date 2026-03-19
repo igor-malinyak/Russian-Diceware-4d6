@@ -11,6 +11,7 @@ import {
 
 const TOP_ROOTS_LIMIT = 5000;
 const TOP_LEMMAS_PER_ROOT = 10;
+const TOP_GLOBAL_LEMMAS_LIMIT = 5000;
 
 type RootRank = {
   root: string;
@@ -40,6 +41,17 @@ type CandidateCollection = {
   homonymSplitRows: number;
   skippedComplexMultiRootRows: number;
   collapsedLemmaRootDuplicates: number;
+};
+
+type LemmaRank = {
+  lemma: string;
+  ipm: number;
+  numberValue: number;
+};
+
+type OutputBuildResult = {
+  rows: string[][];
+  overflowTopLemmaRows: number;
 };
 
 function parseIpm(value: string): number {
@@ -93,6 +105,14 @@ function compareRoots(left: RootRank, right: RootRank): number {
 function compareCandidates(left: CandidateRow, right: CandidateRow): number {
   if (left.lemmaIpm !== right.lemmaIpm) {
     return right.lemmaIpm - left.lemmaIpm;
+  }
+
+  return left.numberValue - right.numberValue;
+}
+
+function compareLemmaRanks(left: LemmaRank, right: LemmaRank): number {
+  if (left.ipm !== right.ipm) {
+    return right.ipm - left.ipm;
   }
 
   return left.numberValue - right.numberValue;
@@ -229,6 +249,31 @@ function collectCandidates(dictionary: DictionaryData): CandidateCollection {
   };
 }
 
+function selectGlobalTopLemmas(dictionary: DictionaryData): Set<string> {
+  const bestLemmaRankByLemma = new Map<string, LemmaRank>();
+
+  for (const row of dictionary.rows) {
+    const lemma = row[dictionary.lemmaIndex] || '';
+    const rank: LemmaRank = {
+      lemma,
+      ipm: parseIpm(row[dictionary.ipmIndex] || ''),
+      numberValue: parseNumber(row[dictionary.numberIndex] || ''),
+    };
+
+    const previous = bestLemmaRankByLemma.get(lemma);
+    if (!previous || compareLemmaRanks(rank, previous) < 0) {
+      bestLemmaRankByLemma.set(lemma, rank);
+    }
+  }
+
+  return new Set(
+    [...bestLemmaRankByLemma.values()]
+      .sort(compareLemmaRanks)
+      .slice(0, TOP_GLOBAL_LEMMAS_LIMIT)
+      .map((rank) => rank.lemma),
+  );
+}
+
 function groupCandidatesByRoot(
   bestCandidateByLemmaRoot: Map<string, CandidateRow>,
 ): Map<string, CandidateRow[]> {
@@ -280,19 +325,31 @@ function buildOutputRows(
   rankedRoots: RootRank[],
   candidatesByRoot: Map<string, CandidateRow[]>,
   rootsIndex: number,
-): string[][] {
+  globalTopLemmas: Set<string>,
+): OutputBuildResult {
   const outputRows: string[][] = [];
+  let overflowTopLemmaRows = 0;
 
   for (const rankedRoot of rankedRoots) {
     const candidates = candidatesByRoot.get(rankedRoot.root) || [];
     candidates.sort(compareCandidates);
 
-    for (const candidate of candidates.slice(0, TOP_LEMMAS_PER_ROOT)) {
+    const baseCandidates = candidates.slice(0, TOP_LEMMAS_PER_ROOT);
+    const overflowCandidates = candidates
+      .slice(TOP_LEMMAS_PER_ROOT)
+      .filter((candidate) => globalTopLemmas.has(candidate.lemma));
+
+    overflowTopLemmaRows += overflowCandidates.length;
+
+    for (const candidate of [...baseCandidates, ...overflowCandidates]) {
       outputRows.push(buildOutputRow(candidate, rootsIndex, rankedRoot.ipmRaw));
     }
   }
 
-  return outputRows;
+  return {
+    rows: outputRows,
+    overflowTopLemmaRows,
+  };
 }
 
 ensureInputArtifactsExist();
@@ -300,10 +357,17 @@ ensureInputArtifactsExist();
 const dictionary = loadDictionaryData();
 const rootRanksByName = loadRootRanksByName();
 const candidateCollection = collectCandidates(dictionary);
+const globalTopLemmas = selectGlobalTopLemmas(dictionary);
 const candidatesByRoot = groupCandidatesByRoot(candidateCollection.bestCandidateByLemmaRoot);
 const rankedRoots = selectRankedRoots(rootRanksByName, candidatesByRoot);
 const outputHeader = buildOutputHeader(dictionary);
-const outputRows = buildOutputRows(rankedRoots, candidatesByRoot, dictionary.rootsIndex);
+const outputBuildResult = buildOutputRows(
+  rankedRoots,
+  candidatesByRoot,
+  dictionary.rootsIndex,
+  globalTopLemmas,
+);
+const outputRows = outputBuildResult.rows;
 
 ensureAttributesDir();
 writeCsv(ARTIFACTS.dictionaryTop, outputHeader, outputRows);
@@ -318,6 +382,8 @@ console.log(
       homonymSplitRows: candidateCollection.homonymSplitRows,
       skippedComplexMultiRootRows: candidateCollection.skippedComplexMultiRootRows,
       collapsedLemmaRootDuplicates: candidateCollection.collapsedLemmaRootDuplicates,
+      globalTopLemmasSelected: globalTopLemmas.size,
+      overflowTopLemmaRows: outputBuildResult.overflowTopLemmaRows,
       topLemmasPerRoot: TOP_LEMMAS_PER_ROOT,
     },
     null,
