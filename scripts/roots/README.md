@@ -32,10 +32,10 @@ The pipeline has two final artifacts:
 - `data/roots/root-ipm.csv` is the aggregated root dictionary with total `IPM` summed over every lemma that contains each root
 
 ## Sources
-- `data/dictionary-source.csv`
-- `data/roots/lemmas_to_roots_fixed.tsv`
-- `data/roots/root_groups_fixed.txt`
-- `data/external/train_Tikhonov_reformat.txt`
+- `data/dictionary-source.csv` - a filtered version of [`data/external/freqrnc2011.csv`](../../data/external/README.md#freqrnc2011csv), keeping only nouns, verbs, adjectives, and adverbs.
+- `data/roots/lemmas_to_roots_fixed.tsv` - a manually corrected copy of [`data/external/lemmas_to_roots.tsv`](../../data/external/README.md#lemmas_to_rootstsv); typos and OCR errors found during matching were fixed.
+- `data/roots/root_groups_fixed.txt` - a manually corrected copy of [`data/external/root_groups.txt`](../../data/external/README.md#root_groupstxt); typos and OCR errors found during matching were fixed.
+- `data/external/train_Tikhonov_reformat.txt` - a Tikhonov-derived morpheme segmentation training dataset; see its [source note](../../data/external/README.md#train_tikhonov_reformattxt).
 
 ## Example Selection
 When a root artifact stores example lemmas:
