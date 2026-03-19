@@ -1,6 +1,6 @@
 [English](README.md) | [Русский](README.ru.md)
 
-# Root Identification Pipeline
+# Root identification pipeline
 
 ## Method
 This pipeline assigns roots to lemmas from `data/dictionary-source.csv`.
@@ -37,7 +37,7 @@ The pipeline has two final artifacts:
 - `data/roots/root_groups_fixed.txt` - a manually corrected copy of [`data/external/root_groups.txt`](../../data/external/README.md#root_groupstxt); typos and OCR errors found during matching were fixed.
 - `data/external/train_Tikhonov_reformat.txt` - a Tikhonov-derived morpheme segmentation training dataset; see its [source note](../../data/external/README.md#train_tikhonov_reformattxt).
 
-## Example Selection
+## Example selection
 When a root artifact stores example lemmas:
 - examples are sorted by descending `IPM`
 - top 10 examples are kept
@@ -301,7 +301,7 @@ Counting rule:
 - every root present in the final dictionary is included in the output
 - the final `IPM` for a root is the sum of `IPM` across all lemmas that contain that root
 
-## Run Order
+## Run order
 
 Install local dependencies once:
 
