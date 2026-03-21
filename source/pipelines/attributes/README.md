@@ -20,7 +20,7 @@ Then the LLM is used only to assign three independent judgments for each lemma:
 - what its typical emotional polarity is
 - whether it is profane
 
-Those judgments are then attached back to the working list to produce the final attribute file.
+Those judgments are then attached back to the working list, and the final file can be manually refined if needed.
 
 ### Field definitions
 
@@ -174,6 +174,15 @@ Step logic:
 - checks that rows match between the two input files
 - preserves original order and all fields from `dictionary-top.csv`
 
+### 4. Manual edits to `dictionary-top-with-attributes.csv`
+After the build step, the final file is manually refined here:
+- `source/data/attributes/dictionary-top-with-attributes.csv`
+
+At this step:
+- some LLM field values in `imageability`, `emotional_valence`, and `is_profane` are corrected
+- words missing because of root-detection errors in the previous pipeline are added
+
+
 ## Running order
 
 Install local dependencies once:
@@ -201,3 +210,6 @@ node 02-04-merge-llm-attributes.ts
 node 02-05-validate-llm-attributes.ts
 node 03-build-dictionary-top-with-attributes.ts
 ```
+
+After that, if needed, apply manual edits to
+`source/data/attributes/dictionary-top-with-attributes.csv`.
