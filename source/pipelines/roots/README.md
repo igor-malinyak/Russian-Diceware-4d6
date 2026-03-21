@@ -3,32 +3,36 @@
 # Root identification pipeline
 
 ## Method
-This pipeline assigns roots to lemmas from `source/data/roots/dictionary-source.csv`.
+This pipeline identifies roots for lemmas from `source/data/roots/dictionary-source.csv` and reduces the result to one consistent final root inventory.
 
-It combines two root systems:
-- Kuznetsova gives the main system of known roots and homonym distinctions.
-- Tikhonov helps recover roots for lemmas that are missing from Kuznetsova.
+It combines three sources of root evidence:
+- the Kuznetsova dictionary provides the reference root system, homonym distinctions, and canonicalization rules
+- the Tikhonov dictionary extends coverage where direct Kuznetsova coverage is missing
+- the LLM is used as a fallback path for cases that cannot be resolved reliably from dictionary evidence alone
 
-The pipeline works in two levels:
-- `root` is the concrete root used during matching and homonym disambiguation.
-- `canonical_root` is the normalized final root used in the final dictionary.
+Conceptually, the pipeline works like this:
+- it first builds a reference root registry from Kuznetsova
+- it then maps Tikhonov roots into that system wherever the correspondence can be established reliably
+- cases that remain ambiguous or unresolved are passed to LLM stages
+- after that, all resolved cases are assembled into a unified lemma dictionary and an aggregated root dictionary
 
-For roots that exist in the Kuznetsova system:
-- `canonical_root` is assigned by the Kuznetsova root grouping file.
+It is useful to distinguish two levels of root representation:
+- the working level is the concrete root variant used for matching and homonym disambiguation
+- the final level is the canonical form used in the final dictionary and for aggregation; for phonetic variants of the same underlying root, including vowel and consonant alternations or vowel deletion, one common canonical spelling is chosen
 
-For roots that do not exist in the Kuznetsova system:
-- no separate canonicalization is attempted
-- `canonical_root = root`
+For roots already present in the Kuznetsova system, the canonical form comes from Kuznetsova root grouping.
+For roots outside that coverage, the canonical form is the root itself.
 
-This means the final output always has a filled `canonical_root`, but only known Kuznetsova roots are canonicalized by the Kuznetsova grouping rules.
+The LLM is used only where an interpretive choice is needed rather than a mechanical transformation:
+- when a Tikhonov root cannot be mapped into the reference system reliably enough by automatic means
+- when the exact homonym variant must be selected
+- when mixed or residual lemma-level cases remain
 
-LLM is used only where automatic matching is not reliable enough:
-- root-level mapping of Tikhonov roots to Kuznetsova roots
-- homonym disambiguation
-- residual lemma-level cases
+As a result, the pipeline reduces different sources and different kinds of decisions to one consistent root representation: in the final dictionary, every lemma receives roots in canonical form, whether they come directly from the Kuznetsova dictionary, are inferred automatically from the Tikhonov dictionary, or are assigned at the LLM stages.
 
-The pipeline has two final artifacts:
-- `source/data/roots/dictionary-source-with-roots.csv` is the final lemma dictionary with a `roots` field that always stores `canonical_root`
+## Artifacts
+Final artifacts of this pipeline:
+- `source/data/roots/dictionary-source-with-roots.csv` is the final lemma dictionary with final roots
 - `source/data/roots/root-ipm.csv` is the aggregated root dictionary with total `IPM` summed over every lemma that contains each root
 
 ## Sources
