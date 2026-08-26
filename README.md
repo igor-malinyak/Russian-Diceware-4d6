@@ -18,11 +18,13 @@ This repository is split into two top-level areas:
 └── source/
     ├── data/
     │   ├── external/
+    │   ├── attributes/
     │   ├── roots/
-    │   └── ...
+    │   └── selection/
     └── pipelines/
+        ├── attributes/
         ├── roots/
-        └── ...
+        └── selection/
 ```
 
 ## What goes where

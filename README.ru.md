@@ -18,11 +18,13 @@
 └── source/
     ├── data/
     │   ├── external/
+    │   ├── attributes/
     │   ├── roots/
-    │   └── ...
+    │   └── selection/
     └── pipelines/
+        ├── attributes/
         ├── roots/
-        └── ...
+        └── selection/
 ```
 
 ## Что где лежит
