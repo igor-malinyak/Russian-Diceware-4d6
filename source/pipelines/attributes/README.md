@@ -22,6 +22,8 @@ Then the LLM is used only to assign three independent judgments for each lemma:
 
 Those judgments are then attached back to the working list, and the final file can be manually refined if needed.
 
+The same three attributes are filled separately for a list of manually selected lemmas that are not part of the working list.
+
 ### Field definitions
 
 #### `imageability`
@@ -76,8 +78,9 @@ Use `0` for:
 - words about heavy themes if the word itself is not profanity
 
 ## Artifacts
-Final artifact of this pipeline:
+Final artifacts of this pipeline:
 - `source/data/attributes/dictionary-top-with-attributes.csv`
+- `source/data/attributes/extra-lemmas-with-attributes.csv`
 
 ## Steps
 
@@ -174,13 +177,49 @@ Step logic:
 - checks that rows match between the two input files
 - preserves original order and all fields from `dictionary-top.csv`
 
-### 4. Manual edits to `dictionary-top-with-attributes.csv`
+### 4. Attributes for manually selected lemmas
+
+Source file:
+- `source/data/attributes/extra-lemmas-llm-attributes.original.csv`
+
+It contains `Number` and `Lemma`, plus empty `imageability`, `emotional_valence`, and `is_profane` fields.
+
+#### 4.1. Filling with LLM
+
+Builds:
+- `source/data/attributes/extra-lemmas-llm-attributes.llm.csv`
+
+Use `02-03-prompt-llm-attributes.md` for this step. In a copy of the prompt, change only the input and output file names:
+- input: `extra-lemmas-llm-attributes.original.csv`
+- output: `extra-lemmas-llm-attributes.llm.csv`
+
+Keep all other prompt instructions unchanged.
+
+#### 4.2. `04-build-extra-lemmas-with-attributes.ts`
+
+Builds:
+- `source/data/attributes/extra-lemmas-with-attributes.csv`
+
+Reads:
+- `source/data/attributes/extra-lemmas-llm-attributes.original.csv`
+- `source/data/attributes/extra-lemmas-llm-attributes.llm.csv`
+- `source/data/roots/dictionary-source-with-roots.csv`
+- `source/data/roots/root-ipm.csv`
+
+Step logic:
+- checks the headers, row counts, `Number`, `Lemma`, and row order in both LLM attribute files
+- checks the allowed values for `imageability`, `emotional_valence`, and `is_profane`
+- finds the source dictionary row for each word in `dictionary-source-with-roots.csv` by `Number`
+- copies `PoS`, `IPM`, `R`, `D`, `Doc`, and the root list from the source dictionary while preserving the manually selected form in `Lemma`
+- takes `root_IPM` from `root-ipm.csv` for a single-root lemma and sums the `IPM` values of all roots for a multi-root lemma
+- attaches the filled attributes and creates a file with the same fields in the same order as `dictionary-top-with-attributes.csv`
+
+### 5. Manual edits to `dictionary-top-with-attributes.csv`
 After the build step, the final file is manually refined here:
 - `source/data/attributes/dictionary-top-with-attributes.csv`
 
 At this step:
 - some LLM field values in `imageability`, `emotional_valence`, and `is_profane` are corrected
-- words missing because of root-detection errors in the previous pipeline are added
 
 
 ## Running order
@@ -209,6 +248,15 @@ Then continue:
 node 02-04-merge-llm-attributes.ts
 node 02-05-validate-llm-attributes.ts
 node 03-build-dictionary-top-with-attributes.ts
+```
+
+For the manually selected lemmas, fill
+`source/data/attributes/extra-lemmas-llm-attributes.llm.csv` using
+`02-03-prompt-llm-attributes.md`, changing only the input and output file names.
+Then run:
+
+```bash
+node 04-build-extra-lemmas-with-attributes.ts
 ```
 
 After that, if needed, apply manual edits to

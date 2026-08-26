@@ -22,6 +22,8 @@
 
 После этого оценки присоединяются обратно к рабочему списку, а итоговый файл при необходимости вручную уточняется.
 
+Те же три атрибута отдельно заполняются для списка вручную выбранных лемм, которые не входят в рабочий список.
+
 ### Определения полей
 
 #### `imageability`
@@ -76,8 +78,9 @@
 - слова с тяжёлой тематикой, если они сами по себе не являются руганью
 
 ## Артефакты
-Конечный артефакт этого процесса:
+Конечные артефакты этого процесса:
 - `source/data/attributes/dictionary-top-with-attributes.csv`
+- `source/data/attributes/extra-lemmas-with-attributes.csv`
 
 ## Шаги
 
@@ -174,13 +177,49 @@
 - сверяет, что строки в обоих входных файлах совпадают
 - сохраняет исходный порядок и все поля `dictionary-top.csv`
 
-### 4. Ручные правки `dictionary-top-with-attributes.csv`
+### 4. Атрибуты вручную выбранных лемм
+
+Исходный файл:
+- `source/data/attributes/extra-lemmas-llm-attributes.original.csv`
+
+Он содержит поля `Number` и `Lemma`, а также пустые поля `imageability`, `emotional_valence`, `is_profane`.
+
+#### 4.1. Заполнение через LLM
+
+Создаёт:
+- `source/data/attributes/extra-lemmas-llm-attributes.llm.csv`
+
+Для заполнения используется `02-03-prompt-llm-attributes.md`. В копии промпта меняются только имена входного и выходного файлов:
+- вход: `extra-lemmas-llm-attributes.original.csv`
+- выход: `extra-lemmas-llm-attributes.llm.csv`
+
+Все остальные инструкции промпта остаются без изменений.
+
+#### 4.2. `04-build-extra-lemmas-with-attributes.ts`
+
+Создаёт:
+- `source/data/attributes/extra-lemmas-with-attributes.csv`
+
+Читает:
+- `source/data/attributes/extra-lemmas-llm-attributes.original.csv`
+- `source/data/attributes/extra-lemmas-llm-attributes.llm.csv`
+- `source/data/roots/dictionary-source-with-roots.csv`
+- `source/data/roots/root-ipm.csv`
+
+Логика шага:
+- сверяет заголовки, число строк, `Number`, `Lemma` и порядок строк в двух файлах LLM-атрибутов
+- проверяет допустимость значений `imageability`, `emotional_valence`, `is_profane`
+- находит исходную строку слова в `dictionary-source-with-roots.csv` по полю `Number`
+- переносит `PoS`, `IPM`, `R`, `D`, `Doc` и список корней из исходного словаря, сохраняя вручную выбранную форму в поле `Lemma`
+- для однокорневой леммы берёт `root_IPM` из `root-ipm.csv`, а для многокорневой суммирует `IPM` всех её корней
+- добавляет заполненные атрибуты и создаёт файл с теми же полями и в том же порядке, что и `dictionary-top-with-attributes.csv`
+
+### 5. Ручные правки `dictionary-top-with-attributes.csv`
 После сборки итоговый файл вручную уточняется здесь:
 - `source/data/attributes/dictionary-top-with-attributes.csv`
 
 На этом шаге:
 - исправляются отдельные неточные значения LLM-полей `imageability`, `emotional_valence`, `is_profane`
-- добавляются слова, пропущенные из-за ошибок определения корней на предыдущем этапе
 
 
 ## Порядок запуска
@@ -209,6 +248,15 @@ node 02-02-split-llm-attributes.ts
 node 02-04-merge-llm-attributes.ts
 node 02-05-validate-llm-attributes.ts
 node 03-build-dictionary-top-with-attributes.ts
+```
+
+Для вручную выбранных лемм заполнить
+`source/data/attributes/extra-lemmas-llm-attributes.llm.csv` по инструкции из
+`02-03-prompt-llm-attributes.md`, изменив только имена входного и выходного файлов.
+Затем запустить:
+
+```bash
+node 04-build-extra-lemmas-with-attributes.ts
 ```
 
 После этого при необходимости вручную внести правки в

@@ -23,6 +23,15 @@ export const ARTIFACTS = {
   llmAttributesOriginal: path.join(ATTRIBUTES_DIR, 'llm-attributes.original.csv'),
   llmAttributesLlm: path.join(ATTRIBUTES_DIR, 'llm-attributes.llm.csv'),
   dictionaryTopWithAttributes: path.join(ATTRIBUTES_DIR, 'dictionary-top-with-attributes.csv'),
+  extraLemmasLlmAttributesOriginal: path.join(
+    ATTRIBUTES_DIR,
+    'extra-lemmas-llm-attributes.original.csv',
+  ),
+  extraLemmasLlmAttributesLlm: path.join(
+    ATTRIBUTES_DIR,
+    'extra-lemmas-llm-attributes.llm.csv',
+  ),
+  extraLemmasWithAttributes: path.join(ATTRIBUTES_DIR, 'extra-lemmas-with-attributes.csv'),
 } as const;
 
 export function readCsvRows(filePath: string): { header: string[]; rows: string[][] } {
