@@ -20,11 +20,13 @@ This repository is split into two top-level areas:
     │   ├── external/
     │   ├── attributes/
     │   ├── roots/
-    │   └── selection/
+    │   ├── selection/
+    │   └── wordlist/
     └── pipelines/
         ├── attributes/
         ├── roots/
-        └── selection/
+        ├── selection/
+        └── wordlist/
 ```
 
 ## What goes where

@@ -20,11 +20,13 @@
     │   ├── external/
     │   ├── attributes/
     │   ├── roots/
-    │   └── selection/
+    │   ├── selection/
+    │   └── wordlist/
     └── pipelines/
         ├── attributes/
         ├── roots/
-        └── selection/
+        ├── selection/
+        └── wordlist/
 ```
 
 ## Что где лежит

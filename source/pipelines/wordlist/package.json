@@ -1,0 +1,17 @@
+{
+  "name": "russian-diceware-wordlist-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test *.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "csv-parse": "^6.1.0",
+    "csv-stringify": "^6.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}
