@@ -112,7 +112,7 @@
 
 ### 2. Выполнить первый ручной отбор
 
-Создать рабочую копию подготовленной таблицы:
+Из корня репозитория создать рабочую копию подготовленной таблицы:
 
 ```bash
 cp source/data/selection/manual-selection.csv source/data/selection/manual-selection-completed.csv
@@ -154,7 +154,7 @@ cp source/data/selection/manual-selection.csv source/data/selection/manual-selec
 
 ### 5. Выполнить окончательный ручной отбор
 
-Создать рабочую копию ранжированного списка кандидатов:
+Из корня репозитория создать рабочую копию ранжированного списка кандидатов:
 
 ```bash
 cp source/data/selection/final-candidates-ranked.csv source/data/selection/final-candidates-selected.csv
@@ -168,20 +168,21 @@ cp source/data/selection/final-candidates-ranked.csv source/data/selection/final
 Один раз установить локальные зависимости:
 
 ```bash
-(cd source/pipelines/selection && npm install)
+cd source/pipelines/selection
+npm install
 ```
 
-Все последующие команды выполнять из корня репозитория. Выполнить шаг 1:
+Затем выполнить шаг 1:
 
 ```bash
-node source/pipelines/selection/01-build-selection-inputs.ts
+node 01-build-selection-inputs.ts
 ```
 
 Выполнить ручную работу из шага 2, затем запустить скрипты из шагов 3 и 4:
 
 ```bash
-node source/pipelines/selection/03-count-manual-selection.ts
-node source/pipelines/selection/04-build-final-candidates-ranked.ts
+node 03-count-manual-selection.ts
+node 04-build-final-candidates-ranked.ts
 ```
 
 В завершение выполнить ручную работу из шага 5.

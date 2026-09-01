@@ -113,7 +113,7 @@ Step logic:
 
 ### 2. Complete the first manual selection
 
-Create a working copy of the generated review grid:
+From the repository root, create a working copy of the generated review grid:
 
 ```bash
 cp source/data/selection/manual-selection.csv source/data/selection/manual-selection-completed.csv
@@ -155,7 +155,7 @@ Step logic:
 
 ### 5. Complete the final manual selection
 
-Create a working copy of the ranked candidates:
+From the repository root, create a working copy of the ranked candidates:
 
 ```bash
 cp source/data/selection/final-candidates-ranked.csv source/data/selection/final-candidates-selected.csv
@@ -169,20 +169,21 @@ exactly 1,296 words in it.
 Install local dependencies once:
 
 ```bash
-(cd source/pipelines/selection && npm install)
+cd source/pipelines/selection
+npm install
 ```
 
-Run all subsequent commands from the repository root. Complete step 1:
+Then run step 1:
 
 ```bash
-node source/pipelines/selection/01-build-selection-inputs.ts
+node 01-build-selection-inputs.ts
 ```
 
 Complete the manual work in step 2, then run the scripts from steps 3 and 4:
 
 ```bash
-node source/pipelines/selection/03-count-manual-selection.ts
-node source/pipelines/selection/04-build-final-candidates-ranked.ts
+node 03-count-manual-selection.ts
+node 04-build-final-candidates-ranked.ts
 ```
 
 Finally, complete the manual work in step 5.

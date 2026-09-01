@@ -30,7 +30,7 @@ word
 
 ### 2. Внести ручные правки
 
-Создать рабочую копию отобранных слов:
+Из корня репозитория создать рабочую копию отобранных слов:
 
 ```bash
 cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
@@ -59,7 +59,7 @@ word,transliteration,abbreviation,top_1000
 
 ### 4. Выполнить ручное заполнение
 
-Создать рабочую копию подготовленной таблицы:
+Из корня репозитория создать рабочую копию подготовленной таблицы:
 
 ```bash
 cp source/data/wordlist/word-metadata-input.csv source/data/wordlist/word-metadata-completed.csv
@@ -118,19 +118,20 @@ cp source/data/wordlist/word-metadata-input.csv source/data/wordlist/word-metada
 Один раз установить локальные зависимости:
 
 ```bash
-(cd source/pipelines/wordlist && npm install)
+cd source/pipelines/wordlist
+npm install
 ```
 
-Затем из корня репозитория выполнить шаг 1:
+Затем выполнить шаг 1:
 
 ```bash
-node source/pipelines/wordlist/01-build-selected-words.ts
+node 01-build-selected-words.ts
 ```
 
 Выполнить ручные правки из шага 2, затем запустить шаг 3:
 
 ```bash
-node source/pipelines/wordlist/03-build-word-metadata-input.ts
+node 03-build-word-metadata-input.ts
 ```
 
 После этого выполнить ручную работу из шага 4.
