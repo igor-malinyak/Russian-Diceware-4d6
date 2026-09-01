@@ -30,7 +30,7 @@ word
 
 ### 2. Make manual edits
 
-Create a working copy of the selected words:
+From the repository root, create a working copy of the selected words:
 
 ```bash
 cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
@@ -59,7 +59,7 @@ word,transliteration,abbreviation,top_1000
 
 ### 4. Complete the manual fields
 
-Create a working copy of the prepared table:
+From the repository root, create a working copy of the prepared table:
 
 ```bash
 cp source/data/wordlist/word-metadata-input.csv source/data/wordlist/word-metadata-completed.csv
@@ -118,19 +118,20 @@ applies to `е`: it becomes `ye` immediately after `ь` or `ъ`, and `e` everywh
 Install local dependencies once:
 
 ```bash
-(cd source/pipelines/wordlist && npm install)
+cd source/pipelines/wordlist
+npm install
 ```
 
-Then run step 1 from the repository root:
+Then run step 1:
 
 ```bash
-node source/pipelines/wordlist/01-build-selected-words.ts
+node 01-build-selected-words.ts
 ```
 
 Complete the manual corrections in step 2, then run step 3:
 
 ```bash
-node source/pipelines/wordlist/03-build-word-metadata-input.ts
+node 03-build-word-metadata-input.ts
 ```
 
 Afterward, complete the manual work described in step 4.
