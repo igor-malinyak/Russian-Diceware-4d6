@@ -10,6 +10,11 @@ const DATA_ROOT = path.join(PROJECT_ROOT, 'source', 'data');
 const SELECTION_DIR = path.join(DATA_ROOT, 'selection');
 const WORDLIST_DIR = path.join(DATA_ROOT, 'wordlist');
 
+const RUSSIAN_ALPHABET = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+const RUSSIAN_LETTER_RANK = new Map(
+  [...RUSSIAN_ALPHABET].map((letter, index) => [letter, index]),
+);
+
 export const ARTIFACTS = {
   finalCandidatesSelected: path.join(SELECTION_DIR, 'final-candidates-selected.csv'),
   selectedWords: path.join(WORDLIST_DIR, 'selected-words.csv'),
@@ -52,6 +57,31 @@ const TRANSLITERATION_BY_LETTER: Readonly<Record<string, string>> = {
   'ю': 'yu',
   'я': 'ya',
 };
+
+export function compareRussianWords(left: string, right: string): number {
+  const leftLetters = [...left.normalize('NFC')];
+  const rightLetters = [...right.normalize('NFC')];
+  const commonLength = Math.min(leftLetters.length, rightLetters.length);
+
+  for (let index = 0; index < commonLength; index += 1) {
+    const leftLetter = leftLetters[index];
+    const rightLetter = rightLetters[index];
+
+    if (leftLetter === rightLetter) {
+      continue;
+    }
+
+    const leftRank = RUSSIAN_LETTER_RANK.get(leftLetter);
+    const rightRank = RUSSIAN_LETTER_RANK.get(rightLetter);
+    if (leftRank === undefined || rightRank === undefined) {
+      throw new Error(`Cannot compare words with unsupported characters: "${left}", "${right}"`);
+    }
+
+    return leftRank - rightRank;
+  }
+
+  return leftLetters.length - rightLetters.length;
+}
 
 export function transliterate(word: string): string {
   const letters = [...word.normalize('NFC')];

@@ -1,5 +1,6 @@
 import {
   ARTIFACTS,
+  compareRussianWords,
   ensureWordlistDir,
   readCsvRows,
   relativeProjectPath,
@@ -9,10 +10,6 @@ import {
 } from './lib.ts';
 
 const OUTPUT_HEADER = ['word', 'transliteration', 'abbreviation', 'top_1000'];
-const russianCollator = new Intl.Collator('ru', {
-  usage: 'sort',
-  sensitivity: 'variant',
-});
 
 function loadWords(): string[] {
   const { header, rows } = readCsvRows(ARTIFACTS.editedWords);
@@ -36,7 +33,7 @@ function loadWords(): string[] {
     throw new Error(`Duplicate words in input: ${duplicates.join(', ')}`);
   }
 
-  return words.sort((left, right) => russianCollator.compare(left, right));
+  return words.sort(compareRussianWords);
 }
 
 function buildRows(words: string[]): string[][] {

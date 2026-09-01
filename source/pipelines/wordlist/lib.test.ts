@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { transliterate } from './lib.ts';
+import { compareRussianWords, transliterate } from './lib.ts';
+
+test('sorts е and ё as consecutive distinct letters', () => {
+  const words = ['ёлка', 'ехать', 'ёж', 'енот'];
+
+  assert.deepEqual(words.sort(compareRussianWords), ['енот', 'ехать', 'ёж', 'ёлка']);
+});
 
 test('transliterates every Russian letter by the configured rules', () => {
   assert.equal(
