@@ -9,35 +9,56 @@ import {
   writeCsv,
 } from './lib.ts';
 
-const OUTPUT_HEADER = ['word', 'transliteration', 'abbreviation'];
+const OUTPUT_HEADER = ['Number', 'word', 'transliteration', 'abbreviation'];
 
-function loadWords(): string[] {
+type WordRow = {
+  number: string;
+  word: string;
+};
+
+function loadWords(): WordRow[] {
   const { header, rows } = readCsvRows(ARTIFACTS.editedWords);
+  const numberColumn = requireColumnIndex(
+    header,
+    'Number',
+    ARTIFACTS.editedWords,
+  );
   const wordColumn = requireColumnIndex(
     header,
     'word',
     ARTIFACTS.editedWords,
   );
   const words = rows.map((row, rowIndex) => {
+    const number = (row[numberColumn] || '').trim();
     const word = (row[wordColumn] || '').trim().normalize('NFC');
+    if (!number) {
+      throw new Error(`Empty Number at CSV row ${rowIndex + 2}`);
+    }
     if (!word) {
       throw new Error(`Empty word at CSV row ${rowIndex + 2}`);
     }
 
-    return word;
+    return { number, word };
   });
-  const uniqueWords = new Set(words);
+  const uniqueWords = new Set(words.map(({ word }) => word));
+  const uniqueNumbers = new Set(words.map(({ number }) => number));
 
   if (uniqueWords.size !== words.length) {
-    const duplicates = [...new Set(words.filter((word, index) => words.indexOf(word) !== index))];
+    const wordValues = words.map(({ word }) => word);
+    const duplicates = [...new Set(
+      wordValues.filter((word, index) => wordValues.indexOf(word) !== index),
+    )];
     throw new Error(`Duplicate words in input: ${duplicates.join(', ')}`);
   }
+  if (uniqueNumbers.size !== words.length) {
+    throw new Error('Duplicate Number values in input');
+  }
 
-  return words.sort(compareRussianWords);
+  return words.sort((left, right) => compareRussianWords(left.word, right.word));
 }
 
-function buildRows(words: string[]): string[][] {
-  return words.map((word) => [word, transliterate(word), '']);
+function buildRows(words: WordRow[]): string[][] {
+  return words.map(({ number, word }) => [number, word, transliterate(word), '']);
 }
 
 const words = loadWords();
