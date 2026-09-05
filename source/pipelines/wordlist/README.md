@@ -11,7 +11,7 @@ then sorts the words and adds the working fields.
 ### 1. `01-build-selected-words.ts`
 
 Reads:
-- `source/data/selection/final-candidates-selected.csv`
+- `source/data/selection/final-candidates-selected-1296.csv`
 
 Builds:
 - `source/data/wordlist/selected-words.csv`
@@ -20,7 +20,7 @@ Step logic:
 - reads the words from the `Lemma` column
 - fails when an empty or duplicate word is found
 - preserves the original spelling and row order
-- writes only the `word` column
+- writes the 1,296-word list with only the `word` column
 
 The output CSV has one column:
 
@@ -49,12 +49,12 @@ Builds:
 Step logic:
 - sorts the words according to the Russian alphabet, taking `ё` into account
 - fills `transliteration` automatically
-- leaves `abbreviation` and `top_1000` empty for manual completion
+- leaves `abbreviation` empty for manual completion
 
 The output CSV has these columns:
 
 ```text
-word,transliteration,abbreviation,top_1000
+word,transliteration,abbreviation
 ```
 
 ### 4. Complete the manual fields
@@ -67,7 +67,6 @@ cp source/data/wordlist/word-metadata-input.csv source/data/wordlist/word-metada
 
 Then manually edit `source/data/wordlist/word-metadata-completed.csv`:
 - fill in `abbreviation`
-- fill in `top_1000`
 
 `word-metadata-input.csv` remains an automatically generated artifact and is not edited
 manually.

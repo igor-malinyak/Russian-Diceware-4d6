@@ -2,7 +2,9 @@ import * as fs from 'node:fs';
 
 import {
   ARTIFACTS,
+  computeRankingScore,
   ensureSelectionDir,
+  formatRankingScore,
   readCsvRows,
   requireColumnIndex,
   writeCsv,
@@ -107,106 +109,6 @@ function parseAllowedInteger(
 
 function countLemmaLength(lemma: string): number {
   return [...lemma.trim()].length;
-}
-
-function imageabilityBonus(imageability: number): number {
-  switch (imageability) {
-    case 5:
-      return 400;
-    case 4:
-      return 200;
-    default:
-      return 0;
-  }
-}
-
-function imageabilityFactor(imageability: number): number {
-  switch (imageability) {
-    case 1:
-      return 0.25;
-    case 2:
-      return 0.5;
-    default:
-      return 1;
-  }
-}
-
-function emotionalValenceFactor(emotionalValence: number): number {
-  switch (emotionalValence) {
-    case 1:
-      return 0.25;
-    case 2:
-      return 0.5;
-    default:
-      return 1;
-  }
-}
-
-function profanityFactor(isProfane: number): number {
-  switch (isProfane) {
-    case 0:
-      return 1;
-    case 1:
-      return 0;
-    default:
-      throw new Error(`Unsupported is_profane value "${isProfane}"`);
-  }
-}
-
-function lengthFactor(length: number): number {
-  switch (length) {
-    case 2:
-      return 4.5;
-    case 3:
-      return 4.5;
-    case 4:
-      return 4;
-    case 5:
-      return 3.5;
-    case 6:
-      return 3;
-    case 7:
-      return 2.5;
-    case 8:
-      return 2;
-    case 9:
-      return 1.75;
-    case 10:
-      return 1.5;
-    case 11:
-      return 1.25;
-    case 12:
-      return 1;
-    default:
-      return 0;
-  }
-}
-
-function computeRankingScore(
-  lemma: string,
-  lemmaIpm: number,
-  rootIpm: number,
-  imageability: number,
-  emotionalValence: number,
-  isProfane: number,
-): number {
-  const avgIpm = Math.sqrt(lemmaIpm * rootIpm);
-  const score =
-    (avgIpm + imageabilityBonus(imageability)) *
-    imageabilityFactor(imageability) *
-    emotionalValenceFactor(emotionalValence) *
-    profanityFactor(isProfane) *
-    lengthFactor(countLemmaLength(lemma));
-
-  if (!Number.isFinite(score)) {
-    throw new Error(`Ranking score is not finite for lemma "${lemma}"`);
-  }
-
-  return score;
-}
-
-function formatRankingScore(value: number): string {
-  return value.toFixed(6).replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
 }
 
 function formatManualSelectionRankingScore(value: number): string {
@@ -324,12 +226,14 @@ function buildRootGroups(
       lemma,
     );
     const rankingScore = computeRankingScore(
-      lemma,
-      lemmaIpm,
-      rootIpm,
-      imageability,
-      emotionalValence,
-      isProfane,
+      {
+        lemmaIpm,
+        rootIpm,
+        imageability,
+        emotionalValence,
+        isProfane,
+      },
+      countLemmaLength(lemma),
     );
 
     if (rankingScore === 0) {

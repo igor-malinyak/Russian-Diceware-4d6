@@ -2,7 +2,9 @@ import * as fs from 'node:fs';
 
 import {
   ARTIFACTS,
+  computeFinalRankingScore,
   ensureSelectionDir,
+  formatRankingScore,
   readCsvRows,
   readManualSelection,
   requireColumnIndex,
@@ -13,8 +15,19 @@ type RankedCandidate = {
   columns: string[];
   lemma: string;
   numberValue: number;
+  finalRankingScore: number;
+};
+
+type RankingIndexes = {
+  lemmaIpm: number;
+  rootIpm: number;
+  imageability: number;
+  emotionalValence: number;
+  isProfane: number;
   rankingScore: number;
 };
+
+const FINAL_RANKING_SCORE_COLUMN = 'final_ranking_score';
 
 function ensureInputArtifactsExist(): void {
   const requiredArtifacts = [
@@ -39,14 +52,30 @@ function parseFiniteNumber(value: string, columnName: string, lemma: string): nu
   return parsed;
 }
 
+function parseAllowedInteger(
+  value: string,
+  columnName: string,
+  allowedValues: number[],
+  lemma: string,
+): number {
+  const parsed = Number.parseInt(value.trim(), 10);
+  if (!allowedValues.includes(parsed)) {
+    throw new Error(
+      `Unsupported ${columnName} "${value}" for lemma "${lemma}"; expected one of ${allowedValues.join(', ')}`,
+    );
+  }
+
+  return parsed;
+}
+
 function parseNumber(value: string): number {
   const parsed = Number.parseInt(value.trim(), 10);
   return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
 }
 
 function compareCandidates(left: RankedCandidate, right: RankedCandidate): number {
-  if (left.rankingScore !== right.rankingScore) {
-    return right.rankingScore - left.rankingScore;
+  if (left.finalRankingScore !== right.finalRankingScore) {
+    return right.finalRankingScore - left.finalRankingScore;
   }
 
   if (left.numberValue !== right.numberValue) {
@@ -76,22 +105,50 @@ function loadRankedCandidates(
 
   const lemmaIndex = requireColumnIndex(header, 'Lemma', inputPath);
   const numberIndex = requireColumnIndex(header, 'Number', inputPath);
-  const rankingScoreIndex = requireColumnIndex(header, 'ranking_score', inputPath);
+  const indexes: RankingIndexes = {
+    lemmaIpm: requireColumnIndex(header, 'IPM', inputPath),
+    rootIpm: requireColumnIndex(header, 'root_IPM', inputPath),
+    imageability: requireColumnIndex(header, 'imageability', inputPath),
+    emotionalValence: requireColumnIndex(header, 'emotional_valence', inputPath),
+    isProfane: requireColumnIndex(header, 'is_profane', inputPath),
+    rankingScore: requireColumnIndex(header, 'ranking_score', inputPath),
+  };
   const candidates = rows.map((columns) => {
     const lemma = (columns[lemmaIndex] || '').trim();
     if (!lemma) {
       throw new Error(`Empty Lemma in ${inputPath}`);
     }
 
-    return {
-      columns,
-      lemma,
-      numberValue: parseNumber(columns[numberIndex] || ''),
-      rankingScore: parseFiniteNumber(
-        columns[rankingScoreIndex] || '',
-        'ranking_score',
+    const finalRankingScore = computeFinalRankingScore({
+      lemmaIpm: parseFiniteNumber(columns[indexes.lemmaIpm] || '', 'IPM', lemma),
+      rootIpm: parseFiniteNumber(columns[indexes.rootIpm] || '', 'root_IPM', lemma),
+      imageability: parseAllowedInteger(
+        columns[indexes.imageability] || '',
+        'imageability',
+        [1, 2, 3, 4, 5],
         lemma,
       ),
+      emotionalValence: parseAllowedInteger(
+        columns[indexes.emotionalValence] || '',
+        'emotional_valence',
+        [1, 2, 3, 4, 5],
+        lemma,
+      ),
+      isProfane: parseAllowedInteger(
+        columns[indexes.isProfane] || '',
+        'is_profane',
+        [0, 1],
+        lemma,
+      ),
+    });
+    const outputColumns = [...columns];
+    outputColumns[indexes.rankingScore] = formatRankingScore(finalRankingScore);
+
+    return {
+      columns: outputColumns,
+      lemma,
+      numberValue: parseNumber(columns[numberIndex] || ''),
+      finalRankingScore,
     };
   });
 
@@ -148,7 +205,9 @@ const finalCandidates = selectFinalCandidates(selection.uniqueSelected, [
 ensureSelectionDir();
 writeCsv(
   ARTIFACTS.finalCandidatesRanked,
-  dictionaryTop.header,
+  dictionaryTop.header.map((column) =>
+    column === 'ranking_score' ? FINAL_RANKING_SCORE_COLUMN : column,
+  ),
   finalCandidates.map((candidate) => candidate.columns),
 );
 

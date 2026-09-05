@@ -9,7 +9,7 @@ import {
   writeCsv,
 } from './lib.ts';
 
-const OUTPUT_HEADER = ['word', 'transliteration', 'abbreviation', 'top_1000'];
+const OUTPUT_HEADER = ['word', 'transliteration', 'abbreviation'];
 
 function loadWords(): string[] {
   const { header, rows } = readCsvRows(ARTIFACTS.editedWords);
@@ -37,7 +37,7 @@ function loadWords(): string[] {
 }
 
 function buildRows(words: string[]): string[][] {
-  return words.map((word) => [word, transliterate(word), '', '']);
+  return words.map((word) => [word, transliterate(word), '']);
 }
 
 const words = loadWords();
