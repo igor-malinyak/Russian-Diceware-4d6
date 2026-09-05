@@ -17,15 +17,14 @@
 - `source/data/wordlist/selected-words.csv`
 
 Логика шага:
-- читает слова из столбца `Lemma`
-- завершает работу с ошибкой, если находит пустое или повторяющееся слово
-- сохраняет исходные написания и порядок слов
-- записывает список на 1296 слов, содержащий только столбец `word`
+- читает стабильные идентификаторы из `Number`, а слова — из `Lemma`
+- завершает работу с ошибкой, если находит пустое или повторяющееся слово либо `Number`
+- сохраняет `Number`, исходные написания и порядок слов
 
-Выходной CSV содержит один столбец:
+Выходной CSV содержит столбцы:
 
 ```text
-word
+Number,word
 ```
 
 ### 2. Внести ручные правки
@@ -37,6 +36,7 @@ cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
 ```
 
 Затем вручную отредактировать `source/data/wordlist/edited-words.csv`.
+Значения `Number` нужно оставить без изменений и редактировать только `word`.
 
 ### 3. `03-build-word-metadata-input.ts`
 
@@ -48,13 +48,15 @@ cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
 
 Логика шага:
 - сортирует слова по русскому алфавиту с учётом `ё`
+- сохраняет `Number` при изменении написания и сортировке слов
+- завершает работу с ошибкой, если находит пустое или повторяющееся слово либо `Number`
 - автоматически заполняет `transliteration`
 - оставляет `abbreviation` пустым для ручного заполнения
 
 Выходной CSV содержит столбцы:
 
 ```text
-word,transliteration,abbreviation
+Number,word,transliteration,abbreviation
 ```
 
 ### 4. Выполнить ручное заполнение

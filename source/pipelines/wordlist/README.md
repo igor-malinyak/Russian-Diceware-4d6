@@ -17,15 +17,14 @@ Builds:
 - `source/data/wordlist/selected-words.csv`
 
 Step logic:
-- reads the words from the `Lemma` column
-- fails when an empty or duplicate word is found
-- preserves the original spelling and row order
-- writes the 1,296-word list with only the `word` column
+- reads stable identifiers from `Number` and words from `Lemma`
+- fails when an empty or duplicate word or `Number` is found
+- preserves `Number`, the original spelling, and row order
 
-The output CSV has one column:
+The output CSV has these columns:
 
 ```text
-word
+Number,word
 ```
 
 ### 2. Make manual edits
@@ -37,6 +36,7 @@ cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
 ```
 
 Then manually edit `source/data/wordlist/edited-words.csv`.
+Keep `Number` unchanged and edit only `word`.
 
 ### 3. `03-build-word-metadata-input.ts`
 
@@ -48,13 +48,15 @@ Builds:
 
 Step logic:
 - sorts the words according to the Russian alphabet, taking `ё` into account
+- preserves `Number` while words are edited and reordered
+- fails when an empty or duplicate word or `Number` is found
 - fills `transliteration` automatically
 - leaves `abbreviation` empty for manual completion
 
 The output CSV has these columns:
 
 ```text
-word,transliteration,abbreviation
+Number,word,transliteration,abbreviation
 ```
 
 ### 4. Complete the manual fields
