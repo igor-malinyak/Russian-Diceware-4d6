@@ -11,7 +11,7 @@
 ### 1. `01-build-selected-words.ts`
 
 Читает:
-- `source/data/selection/final-candidates-selected.csv`
+- `source/data/selection/final-candidates-selected-1296.csv`
 
 Создаёт:
 - `source/data/wordlist/selected-words.csv`
@@ -20,7 +20,7 @@
 - читает слова из столбца `Lemma`
 - завершает работу с ошибкой, если находит пустое или повторяющееся слово
 - сохраняет исходные написания и порядок слов
-- записывает только столбец `word`
+- записывает список на 1296 слов, содержащий только столбец `word`
 
 Выходной CSV содержит один столбец:
 
@@ -49,12 +49,12 @@ cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
 Логика шага:
 - сортирует слова по русскому алфавиту с учётом `ё`
 - автоматически заполняет `transliteration`
-- оставляет `abbreviation` и `top_1000` пустыми для ручного заполнения
+- оставляет `abbreviation` пустым для ручного заполнения
 
 Выходной CSV содержит столбцы:
 
 ```text
-word,transliteration,abbreviation,top_1000
+word,transliteration,abbreviation
 ```
 
 ### 4. Выполнить ручное заполнение
@@ -67,7 +67,6 @@ cp source/data/wordlist/word-metadata-input.csv source/data/wordlist/word-metada
 
 Затем вручную отредактировать `source/data/wordlist/word-metadata-completed.csv`:
 - заполнить `abbreviation`
-- заполнить `top_1000`
 
 `word-metadata-input.csv` остаётся автоматически создаваемым артефактом и вручную не
 редактируется.

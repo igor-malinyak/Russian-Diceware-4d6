@@ -16,7 +16,10 @@ const RUSSIAN_LETTER_RANK = new Map(
 );
 
 export const ARTIFACTS = {
-  finalCandidatesSelected: path.join(SELECTION_DIR, 'final-candidates-selected.csv'),
+  finalCandidatesSelected1296: path.join(
+    SELECTION_DIR,
+    'final-candidates-selected-1296.csv',
+  ),
   selectedWords: path.join(WORDLIST_DIR, 'selected-words.csv'),
   editedWords: path.join(WORDLIST_DIR, 'edited-words.csv'),
   wordMetadataInput: path.join(WORDLIST_DIR, 'word-metadata-input.csv'),

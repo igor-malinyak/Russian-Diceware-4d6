@@ -22,10 +22,11 @@
 - `extra-lemmas-ranked.csv` ранжирует дополнительные леммы по той же формуле
 - `manual-selection.csv` показывает до пяти самых сильных кандидатов на каждый корень в компактной таблице для просмотра
 - `manual-selection-completed.csv` фиксирует результаты первого ручного отбора
-- `final-candidates-ranked.csv` объединяет выбранные вручную леммы и сортирует их по убыванию `ranking_score`
+- `final-candidates-ranked.csv` объединяет выбранные вручную леммы, вычисляет `final_ranking_score` без коэффициента длины леммы и сортирует их по этой оценке
 
-Конечный артефакт `final-candidates-selected.csv` содержит вручную сокращённый
-список из 1296 слов.
+Конечными артефактами являются два вручную сокращённых списка:
+- `final-candidates-selected-1296.csv` из 1296 слов
+- `final-candidates-selected-1000.csv` из 1000 слов
 
 `manual-selection-completed.csv` создаётся как копия `manual-selection.csv`, после
 чего заполняется вручную. Для выбранного слова в столбце `S` слева от него ставится
@@ -76,10 +77,20 @@
 - `1.25` при длине `11`
 - `1` при длине `12`
 
+## Final ranking score
+
+`final_ranking_score`, используемый только в `final-candidates-ranked.csv` и двух
+конечных файлах отбора, вычисляется с теми же коэффициентами, кроме `length_factor`:
+
+```text
+( Avg_IPM + imageability_bonus ) * imageability_factor * emotional_valence_factor * profanity_factor
+```
+
 ## Конечный артефакт
 
-Конечный артефакт этого процесса:
-- `source/data/selection/final-candidates-selected.csv`
+Конечные артефакты этого процесса:
+- `source/data/selection/final-candidates-selected-1296.csv`
+- `source/data/selection/final-candidates-selected-1000.csv`
 
 ## Шаги
 
@@ -147,21 +158,30 @@ cp source/data/selection/manual-selection.csv source/data/selection/manual-selec
 - собирает леммы, отмеченные `x` в столбцах `S`, и леммы из столбца `Extra`
 - удаляет повторения среди выбранных лемм
 - находит данные каждой выбранной леммы в двух ранжированных входных файлах
-- если одна лемма встречается в нескольких строках, выбирает строку с наибольшим `ranking_score`
+- вычисляет `final_ranking_score` по исходной формуле оценки, но без `length_factor`
+- если одна лемма встречается в нескольких строках, выбирает строку с наибольшим `final_ranking_score`
 - завершает работу с ошибкой, если выбранной леммы нет ни в одном ранжированном входном файле
-- сортирует итоговые строки по убыванию `ranking_score`, а при равной оценке — по возрастанию `Number`
-- сохраняет столбцы в том же формате, что и в ранжированных входных файлах
+- сортирует итоговые строки по убыванию `final_ranking_score`, а при равной оценке — по возрастанию `Number`
+- заменяет входной столбец `ranking_score` на `final_ranking_score`
 
 ### 5. Выполнить окончательный ручной отбор
 
-Из корня репозитория создать рабочую копию ранжированного списка кандидатов:
+Из корня репозитория создать рабочую копию ранжированного списка кандидатов для
+отбора 1296 слов:
 
 ```bash
-cp source/data/selection/final-candidates-ranked.csv source/data/selection/final-candidates-selected.csv
+cp source/data/selection/final-candidates-ranked.csv source/data/selection/final-candidates-selected-1296.csv
 ```
 
-Затем вручную отредактировать `source/data/selection/final-candidates-selected.csv`,
-оставив в нём ровно 1296 слов.
+Вручную отредактировать `final-candidates-selected-1296.csv`, оставив ровно 1296
+слов. Затем скопировать завершённый отбор:
+
+```bash
+cp source/data/selection/final-candidates-selected-1296.csv source/data/selection/final-candidates-selected-1000.csv
+```
+
+Вручную отредактировать `final-candidates-selected-1000.csv`, оставив ровно 1000
+слов.
 
 ## Порядок запуска
 

@@ -35,6 +35,101 @@ export type ManualSelection = {
   uniqueSelected: string[];
 };
 
+type RankingScoreInputs = {
+  lemmaIpm: number;
+  rootIpm: number;
+  imageability: number;
+  emotionalValence: number;
+  isProfane: number;
+};
+
+function imageabilityBonus(imageability: number): number {
+  switch (imageability) {
+    case 5:
+      return 400;
+    case 4:
+      return 200;
+    default:
+      return 0;
+  }
+}
+
+function reducedFactor(value: number): number {
+  switch (value) {
+    case 1:
+      return 0.25;
+    case 2:
+      return 0.5;
+    default:
+      return 1;
+  }
+}
+
+function profanityFactor(isProfane: number): number {
+  return isProfane === 0 ? 1 : 0;
+}
+
+function lengthFactor(length: number): number {
+  switch (length) {
+    case 2:
+    case 3:
+      return 4.5;
+    case 4:
+      return 4;
+    case 5:
+      return 3.5;
+    case 6:
+      return 3;
+    case 7:
+      return 2.5;
+    case 8:
+      return 2;
+    case 9:
+      return 1.75;
+    case 10:
+      return 1.5;
+    case 11:
+      return 1.25;
+    case 12:
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+export function computeFinalRankingScore(inputs: RankingScoreInputs): number {
+  const avgIpm = Math.sqrt(inputs.lemmaIpm * inputs.rootIpm);
+  const score = (
+    (avgIpm + imageabilityBonus(inputs.imageability)) *
+    reducedFactor(inputs.imageability) *
+    reducedFactor(inputs.emotionalValence) *
+    profanityFactor(inputs.isProfane)
+  );
+
+  if (!Number.isFinite(score)) {
+    throw new Error('Final ranking score is not finite');
+  }
+
+  return score;
+}
+
+export function computeRankingScore(
+  inputs: RankingScoreInputs,
+  lemmaLength: number,
+): number {
+  const score = computeFinalRankingScore(inputs) * lengthFactor(lemmaLength);
+
+  if (!Number.isFinite(score)) {
+    throw new Error('Ranking score is not finite');
+  }
+
+  return score;
+}
+
+export function formatRankingScore(value: number): string {
+  return value.toFixed(6).replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
+}
+
 export function readCsvRows(filePath: string): { header: string[]; rows: string[][] } {
   if (!fs.existsSync(filePath)) {
     return { header: [], rows: [] };

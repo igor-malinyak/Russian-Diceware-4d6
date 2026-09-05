@@ -23,10 +23,11 @@ The process produces the following intermediate working files:
 - `extra-lemmas-ranked.csv` ranks the extra lemmas using the same formula
 - `manual-selection.csv` shows up to five strongest candidates per root in a compact review grid
 - `manual-selection-completed.csv` records the results of the first manual selection
-- `final-candidates-ranked.csv` combines the manually selected lemmas and sorts them by descending `ranking_score`
+- `final-candidates-ranked.csv` combines the manually selected lemmas, computes `final_ranking_score` without the lemma-length factor, and sorts them by that score
 
-The final artifact, `final-candidates-selected.csv`, contains the manually reduced
-list of 1,296 words.
+The final artifacts contain two manually reduced lists:
+- `final-candidates-selected-1296.csv` with 1,296 words
+- `final-candidates-selected-1000.csv` with 1,000 words
 
 `manual-selection-completed.csv` is created as a copy of `manual-selection.csv` and
 then filled in manually. Place an `x` in the `S` column to the left of each selected
@@ -77,10 +78,20 @@ Where:
 - `1.25` for length `11`
 - `1` for length `12`
 
+## Final ranking score
+
+`final_ranking_score`, used only in `final-candidates-ranked.csv` and the two
+final selected files, is computed with the same factors except for `length_factor`:
+
+```text
+( Avg_IPM + imageability_bonus ) * imageability_factor * emotional_valence_factor * profanity_factor
+```
+
 ## Final artifact
 
-The final artifact of this pipeline is:
-- `source/data/selection/final-candidates-selected.csv`
+The final artifacts of this pipeline are:
+- `source/data/selection/final-candidates-selected-1296.csv`
+- `source/data/selection/final-candidates-selected-1000.csv`
 
 ## Steps
 
@@ -148,21 +159,28 @@ Step logic:
 - collects lemmas marked with `x` in the `S` columns and lemmas from the `Extra` column
 - removes duplicate selected lemmas
 - looks up every selected lemma in the two ranked input files
-- if a lemma occurs in multiple rows, uses the row with the highest `ranking_score`
+- computes `final_ranking_score` using the original ranking formula without `length_factor`
+- if a lemma occurs in multiple rows, uses the row with the highest `final_ranking_score`
 - fails if a selected lemma is absent from both ranked input files
-- sorts the resulting rows by descending `ranking_score`, then by ascending `Number` when scores are equal
-- preserves the same columns as the ranked input files
+- sorts the resulting rows by descending `final_ranking_score`, then by ascending `Number` when scores are equal
+- replaces the input `ranking_score` column with `final_ranking_score`
 
 ### 5. Complete the final manual selection
 
-From the repository root, create a working copy of the ranked candidates:
+From the repository root, create the 1,296-word working copy of the ranked candidates:
 
 ```bash
-cp source/data/selection/final-candidates-ranked.csv source/data/selection/final-candidates-selected.csv
+cp source/data/selection/final-candidates-ranked.csv source/data/selection/final-candidates-selected-1296.csv
 ```
 
-Then edit `source/data/selection/final-candidates-selected.csv` manually and leave
-exactly 1,296 words in it.
+Edit `final-candidates-selected-1296.csv` manually and leave exactly 1,296 words.
+Then copy that completed selection:
+
+```bash
+cp source/data/selection/final-candidates-selected-1296.csv source/data/selection/final-candidates-selected-1000.csv
+```
+
+Edit `final-candidates-selected-1000.csv` manually and leave exactly 1,000 words.
 
 ## Running order
 

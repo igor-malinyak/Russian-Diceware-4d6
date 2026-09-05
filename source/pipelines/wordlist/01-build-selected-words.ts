@@ -8,11 +8,11 @@ import {
 } from './lib.ts';
 
 function loadWords(): string[] {
-  const { header, rows } = readCsvRows(ARTIFACTS.finalCandidatesSelected);
+  const { header, rows } = readCsvRows(ARTIFACTS.finalCandidatesSelected1296);
   const lemmaColumn = requireColumnIndex(
     header,
     'Lemma',
-    ARTIFACTS.finalCandidatesSelected,
+    ARTIFACTS.finalCandidatesSelected1296,
   );
   const words = rows.map((row, rowIndex) => {
     const word = row[lemmaColumn] || '';
@@ -44,7 +44,7 @@ writeCsv(
 console.log(
   JSON.stringify(
     {
-      input: relativeProjectPath(ARTIFACTS.finalCandidatesSelected),
+      input: relativeProjectPath(ARTIFACTS.finalCandidatesSelected1296),
       output: relativeProjectPath(ARTIFACTS.selectedWords),
       words: words.length,
     },
