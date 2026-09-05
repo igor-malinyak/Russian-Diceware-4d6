@@ -10,10 +10,10 @@ const DATA_ROOT = path.join(PROJECT_ROOT, 'source', 'data');
 const SELECTION_DIR = path.join(DATA_ROOT, 'selection');
 const WORDLIST_DIR = path.join(DATA_ROOT, 'wordlist');
 
-const RUSSIAN_ALPHABET = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
-const RUSSIAN_LETTER_RANK = new Map(
-  [...RUSSIAN_ALPHABET].map((letter, index) => [letter, index]),
-);
+const RUSSIAN_COLLATOR = new Intl.Collator('ru', {
+  usage: 'sort',
+  sensitivity: 'base',
+});
 
 export const ARTIFACTS = {
   finalCandidatesSelected1296: path.join(
@@ -62,28 +62,7 @@ const TRANSLITERATION_BY_LETTER: Readonly<Record<string, string>> = {
 };
 
 export function compareRussianWords(left: string, right: string): number {
-  const leftLetters = [...left.normalize('NFC')];
-  const rightLetters = [...right.normalize('NFC')];
-  const commonLength = Math.min(leftLetters.length, rightLetters.length);
-
-  for (let index = 0; index < commonLength; index += 1) {
-    const leftLetter = leftLetters[index];
-    const rightLetter = rightLetters[index];
-
-    if (leftLetter === rightLetter) {
-      continue;
-    }
-
-    const leftRank = RUSSIAN_LETTER_RANK.get(leftLetter);
-    const rightRank = RUSSIAN_LETTER_RANK.get(rightLetter);
-    if (leftRank === undefined || rightRank === undefined) {
-      throw new Error(`Cannot compare words with unsupported characters: "${left}", "${right}"`);
-    }
-
-    return leftRank - rightRank;
-  }
-
-  return leftLetters.length - rightLetters.length;
+  return RUSSIAN_COLLATOR.compare(left, right);
 }
 
 export function transliterate(word: string): string {

@@ -3,10 +3,11 @@ import test from 'node:test';
 
 import { compareRussianWords, transliterate } from './lib.ts';
 
-test('sorts е and ё as consecutive distinct letters', () => {
+test('sorts words in dictionary order with е and ё treated as equivalent', () => {
   const words = ['ёлка', 'ехать', 'ёж', 'енот'];
 
-  assert.deepEqual(words.sort(compareRussianWords), ['енот', 'ехать', 'ёж', 'ёлка']);
+  assert.deepEqual(words.sort(compareRussianWords), ['ёж', 'ёлка', 'енот', 'ехать']);
+  assert.equal(compareRussianWords('все', 'всё'), 0);
 });
 
 test('transliterates every Russian letter by the configured rules', () => {

@@ -47,7 +47,7 @@ Builds:
 - `source/data/wordlist/word-metadata-input.csv`
 
 Step logic:
-- sorts the words according to the Russian alphabet, taking `ё` into account
+- sorts the words in Russian dictionary order, treating `е` and `ё` as equivalent
 - preserves `Number` while words are edited and reordered
 - fails when an empty or duplicate word or `Number` is found
 - fills `transliteration` automatically

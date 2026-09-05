@@ -47,7 +47,7 @@ cp source/data/wordlist/selected-words.csv source/data/wordlist/edited-words.csv
 - `source/data/wordlist/word-metadata-input.csv`
 
 Логика шага:
-- сортирует слова по русскому алфавиту с учётом `ё`
+- сортирует слова в словарном порядке, приравнивая `е` и `ё`
 - сохраняет `Number` при изменении написания и сортировке слов
 - завершает работу с ошибкой, если находит пустое или повторяющееся слово либо `Number`
 - автоматически заполняет `transliteration`
