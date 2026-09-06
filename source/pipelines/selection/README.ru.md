@@ -139,7 +139,7 @@ cp source/data/selection/manual-selection.csv source/data/selection/manual-selec
 Читает:
 - `source/data/selection/manual-selection-completed.csv`
 
-Логика шага:
+Логика шага:ё
 - считает кандидатов, отмеченных `x` в любом столбце `S`
 - разбирает дополнительные кандидаты из столбца `Extra` как список, разделённый запятыми
 - печатает `selectedFromS`, `selectedFromExtra`, `totalSelected` и `uniqueSelected`
