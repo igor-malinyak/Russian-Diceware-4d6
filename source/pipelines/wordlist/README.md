@@ -73,6 +73,30 @@ Then manually edit `source/data/wordlist/word-metadata-completed.csv`:
 `word-metadata-input.csv` remains an automatically generated artifact and is not edited
 manually.
 
+### 5. `05-build-final-wordlist.ts`
+
+Reads:
+- `source/data/wordlist/word-metadata-completed.csv`
+- `source/data/selection/final-candidates-selected-1000.csv`
+
+Builds:
+- `source/data/wordlist/wordlist.csv`
+
+Step logic:
+- assigns four-dice combinations from `1111` through `6666`
+- assigns numeric codes from `000` through `999` to the 1,000 highest-ranked words
+  in dictionary order; leaves the code empty for the other 296 words
+- validates completeness and the uniqueness of words, identifiers, and abbreviations
+- validates that every abbreviation consists of exactly three lowercase Latin letters
+- validates that an abbreviation starts with the first transliteration letter and that
+  its remaining letters occur in the transliteration in the same order
+
+The final CSV has these columns:
+
+```text
+Dices,Word,Transliteration,Abbreviation,Numeric code
+```
+
 ## Transliteration rules
 
 Every letter has one deterministic replacement. The only context-dependent rule
@@ -135,4 +159,8 @@ Complete the manual corrections in step 2, then run step 3:
 node 03-build-word-metadata-input.ts
 ```
 
-Afterward, complete the manual work described in step 4.
+Afterward, complete the manual work described in step 4 and build the final CSV:
+
+```bash
+node 05-build-final-wordlist.ts
+```

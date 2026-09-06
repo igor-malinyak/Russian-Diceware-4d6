@@ -20,9 +20,15 @@ export const ARTIFACTS = {
     SELECTION_DIR,
     'final-candidates-selected-1296.csv',
   ),
+  finalCandidatesSelected1000: path.join(
+    SELECTION_DIR,
+    'final-candidates-selected-1000.csv',
+  ),
   selectedWords: path.join(WORDLIST_DIR, 'selected-words.csv'),
   editedWords: path.join(WORDLIST_DIR, 'edited-words.csv'),
   wordMetadataInput: path.join(WORDLIST_DIR, 'word-metadata-input.csv'),
+  wordMetadataCompleted: path.join(WORDLIST_DIR, 'word-metadata-completed.csv'),
+  finalWordlist: path.join(WORDLIST_DIR, 'wordlist.csv'),
 } as const;
 
 const TRANSLITERATION_BY_LETTER: Readonly<Record<string, string>> = {
@@ -87,6 +93,39 @@ export function transliterate(word: string): string {
   }
 
   return result;
+}
+
+export function formatDiceCode(index: number): string {
+  if (!Number.isInteger(index) || index < 0 || index >= 6 ** 4) {
+    throw new Error(`Dice code index must be an integer from 0 to ${6 ** 4 - 1}`);
+  }
+
+  return index
+    .toString(6)
+    .padStart(4, '0')
+    .replace(/[0-5]/gu, (digit) => String(Number(digit) + 1));
+}
+
+export function formatNumericCode(index: number): string {
+  if (!Number.isInteger(index) || index < 0 || index > 999) {
+    throw new Error('Numeric code index must be an integer from 0 to 999');
+  }
+
+  return index.toString(10).padStart(3, '0');
+}
+
+export function isOrderedSubsequence(candidate: string, source: string): boolean {
+  let sourceIndex = 0;
+
+  for (const character of candidate) {
+    sourceIndex = source.indexOf(character, sourceIndex);
+    if (sourceIndex === -1) {
+      return false;
+    }
+    sourceIndex += 1;
+  }
+
+  return true;
 }
 
 export function readCsvRows(filePath: string): { header: string[]; rows: string[][] } {
