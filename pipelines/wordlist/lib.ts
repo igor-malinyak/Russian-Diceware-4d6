@@ -1,0 +1,171 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parse as parseCsv } from 'csv-parse/sync';
+import { stringify as stringifyCsv } from 'csv-stringify/sync';
+
+const LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.resolve(LIB_DIR, '../..');
+const DATA_ROOT = path.join(PROJECT_ROOT, 'data');
+const SELECTION_DIR = path.join(DATA_ROOT, 'selection');
+const WORDLIST_DIR = path.join(DATA_ROOT, 'wordlist');
+
+const RUSSIAN_COLLATOR = new Intl.Collator('ru', {
+  usage: 'sort',
+  sensitivity: 'base',
+});
+
+export const ARTIFACTS = {
+  finalCandidatesSelected1296: path.join(
+    SELECTION_DIR,
+    'final-candidates-selected-1296.csv',
+  ),
+  finalCandidatesSelected1000: path.join(
+    SELECTION_DIR,
+    'final-candidates-selected-1000.csv',
+  ),
+  selectedWords: path.join(WORDLIST_DIR, 'selected-words.csv'),
+  editedWords: path.join(WORDLIST_DIR, 'edited-words.csv'),
+  wordMetadataInput: path.join(WORDLIST_DIR, 'word-metadata-input.csv'),
+  wordMetadataCompleted: path.join(WORDLIST_DIR, 'word-metadata-completed.csv'),
+  finalWordlist: path.join(WORDLIST_DIR, 'wordlist.csv'),
+} as const;
+
+const TRANSLITERATION_BY_LETTER: Readonly<Record<string, string>> = {
+  'а': 'a',
+  'б': 'b',
+  'в': 'v',
+  'г': 'g',
+  'д': 'd',
+  'е': 'e',
+  'ё': 'yo',
+  'ж': 'zh',
+  'з': 'z',
+  'и': 'i',
+  'й': 'y',
+  'к': 'k',
+  'л': 'l',
+  'м': 'm',
+  'н': 'n',
+  'о': 'o',
+  'п': 'p',
+  'р': 'r',
+  'с': 's',
+  'т': 't',
+  'у': 'u',
+  'ф': 'f',
+  'х': 'h',
+  'ц': 'ts',
+  'ч': 'ch',
+  'ш': 'sh',
+  'щ': 'shch',
+  'ь': '',
+  'ы': 'y',
+  'ъ': '',
+  'э': 'e',
+  'ю': 'yu',
+  'я': 'ya',
+};
+
+export function compareRussianWords(left: string, right: string): number {
+  return RUSSIAN_COLLATOR.compare(left, right);
+}
+
+export function transliterate(word: string): string {
+  const letters = [...word.normalize('NFC')];
+  let result = '';
+
+  for (let index = 0; index < letters.length; index += 1) {
+    const letter = letters[index];
+    const previousLetter = letters[index - 1];
+
+    if (letter === 'е' && (previousLetter === 'ь' || previousLetter === 'ъ')) {
+      result += 'ye';
+      continue;
+    }
+
+    const replacement = TRANSLITERATION_BY_LETTER[letter];
+    if (replacement === undefined) {
+      throw new Error(`Unsupported character "${letter}" in word "${word}"`);
+    }
+
+    result += replacement;
+  }
+
+  return result;
+}
+
+export function formatDiceCode(index: number): string {
+  if (!Number.isInteger(index) || index < 0 || index >= 6 ** 4) {
+    throw new Error(`Dice code index must be an integer from 0 to ${6 ** 4 - 1}`);
+  }
+
+  return index
+    .toString(6)
+    .padStart(4, '0')
+    .replace(/[0-5]/gu, (digit) => String(Number(digit) + 1));
+}
+
+export function formatNumericCode(index: number): string {
+  if (!Number.isInteger(index) || index < 0 || index > 999) {
+    throw new Error('Numeric code index must be an integer from 0 to 999');
+  }
+
+  return index.toString(10).padStart(3, '0');
+}
+
+export function isOrderedSubsequence(candidate: string, source: string): boolean {
+  let sourceIndex = 0;
+
+  for (const character of candidate) {
+    sourceIndex = source.indexOf(character, sourceIndex);
+    if (sourceIndex === -1) {
+      return false;
+    }
+    sourceIndex += 1;
+  }
+
+  return true;
+}
+
+export function readCsvRows(filePath: string): { header: string[]; rows: string[][] } {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Missing input file: ${relativeProjectPath(filePath)}`);
+  }
+
+  const content = fs.readFileSync(filePath, 'utf8');
+  if (!content.trim()) {
+    throw new Error(`Empty CSV file: ${relativeProjectPath(filePath)}`);
+  }
+
+  const records = parseCsv(content, { bom: true }) as string[][];
+  return {
+    header: records[0] || [],
+    rows: records.slice(1).filter((row) => row.some((value) => value !== '')),
+  };
+}
+
+export function writeCsv(filePath: string, header: string[], rows: string[][]): void {
+  fs.writeFileSync(filePath, stringifyCsv([header, ...rows]), 'utf8');
+}
+
+export function ensureWordlistDir(): void {
+  fs.mkdirSync(WORDLIST_DIR, { recursive: true });
+}
+
+export function requireColumnIndex(
+  header: string[],
+  columnName: string,
+  filePath: string,
+): number {
+  const index = header.indexOf(columnName);
+  if (index === -1) {
+    throw new Error(`Expected ${columnName} column in ${relativeProjectPath(filePath)}`);
+  }
+
+  return index;
+}
+
+export function relativeProjectPath(filePath: string): string {
+  return path.relative(PROJECT_ROOT, filePath);
+}

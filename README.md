@@ -13,33 +13,25 @@ Edition and revision numbering starts at 1. Each new edition resets the revision
 
 ## Repository structure
 
-This repository is split into two top-level areas:
-
-- `dictionary/` contains the end-user artifacts of Russian Diceware 4d6.
-- `source/` contains the inputs and production materials used to build those artifacts.
+The repository contains dictionary inputs and production materials. Published PDF, CSV, and TSV files are distributed through GitHub Releases.
 
 ```text
 /
-├── dictionary/
-│   ├── editions/
-│   └── wordlists/
-└── source/
-    ├── data/
-    │   ├── external/
-    │   ├── attributes/
-    │   ├── roots/
-    │   ├── selection/
-    │   └── wordlist/
-    └── pipelines/
-        ├── attributes/
-        ├── roots/
-        ├── selection/
-        └── wordlist/
+├── data/
+│   ├── external/
+│   ├── attributes/
+│   ├── roots/
+│   ├── selection/
+│   └── wordlist/
+└── pipelines/
+    ├── attributes/
+    ├── roots/
+    ├── selection/
+    └── wordlist/
 ```
 
 ## What goes where
 
-- `dictionary/editions/` stores human-readable editions of the dictionary for reading on screen and/or printing, with instructions included in the dictionary itself.
-- `dictionary/wordlists/` stores machine-usable wordlists in TSV format.
-- `source/data/` stores external inputs, intermediate artifacts, and per-pipeline data outputs.
-- `source/pipelines/` stores the code-like artifacts of each pipeline: scripts, prompts, configs, and pipeline-specific notes.
+- `data/` stores external inputs, intermediate artifacts, and per-pipeline data outputs.
+- `pipelines/` stores the code-like artifacts of each pipeline: scripts, prompts, configs, and pipeline-specific notes.
+- GitHub Releases stores published dictionary editions and revisions, including the PDF with instructions and machine-usable CSV and TSV wordlists.

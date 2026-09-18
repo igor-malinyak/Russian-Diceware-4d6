@@ -1,0 +1,263 @@
+[English](README.md) | [Русский](README.ru.md)
+
+# Word attribute pipeline
+
+## Method
+This pipeline adds three semantic attributes to frequent lemmas:
+- `imageability`
+- `emotional_valence`
+- `is_profane`
+
+First, it builds a working lemma list from the dictionary with roots:
+- only lemmas with one root are kept
+- the most frequent roots are selected
+- for each such root, the most frequent lemmas are kept, with the most frequent words in the dictionary included additionally
+
+This produces a compact and representative slice of the dictionary in `dictionary-top.csv`.
+
+Then the LLM is used only to assign three independent judgments for each lemma:
+- how vividly the word evokes a concrete image
+- what its typical emotional polarity is
+- whether it is profane
+
+Those judgments are then attached back to the working list, and the final file can be manually refined if needed.
+
+The same three attributes are filled separately for a list of manually selected lemmas that are not part of the working list.
+
+### Field definitions
+
+#### `imageability`
+How easily the word, in isolation, evokes a concrete sensory image, object, creature, action, property, feeling, or scene.
+
+The score is assigned:
+- without extra context
+- using the most common modern meaning of the word
+
+Scale:
+- `1` — almost no image; mostly abstract, logical, or functional
+- `2` — weak, vague, or highly context-dependent image
+- `3` — some image exists, but it is not very concrete or not immediate
+- `4` — the word evokes a clear image, scene, action, or sensory property
+- `5` — the word very quickly evokes a sharp and concrete image
+
+Practical rule:
+if the word can be easily imagined, shown, drawn, acted out, or described as a clear sensory property, it is usually `4` or `5`.
+
+#### `emotional_valence`
+The typical emotional polarity of the word in modern neutral usage.
+
+The score is based on the ordinary emotional reaction the word itself tends to evoke.
+
+Scale:
+- `1` — clearly negative
+- `2` — somewhat negative
+- `3` — neutral
+- `4` — somewhat positive
+- `5` — clearly positive
+
+Practical rule:
+if the word is neither positive nor negative on its own, use `3`.
+
+#### `is_profane`
+Whether the word is profane, obscene, or strongly insulting in ordinary modern Russian.
+
+Values:
+- `1` — the word is profane, obscene, or stably used as a direct insult
+- `0` — the word is not profane
+
+Use `1` for:
+- mat
+- obscene vocabulary
+- harsh swear words
+- words that are commonly understood as a direct insult
+
+Use `0` for:
+- merely negative words
+- unpleasant words
+- rough but non-profane everyday words
+- words about heavy themes if the word itself is not profanity
+
+## Artifacts
+Final artifacts of this pipeline:
+- `data/attributes/dictionary-top-with-attributes.csv`
+- `data/attributes/extra-lemmas-with-attributes.csv`
+
+## Steps
+
+### 1. `01-build-dictionary-top.ts`
+Builds:
+- `data/attributes/dictionary-top.csv`
+
+Reads:
+- `data/roots/dictionary-source-with-roots.csv`
+- `data/roots/root-ipm.csv`
+
+Step logic:
+- the file mirrors `data/roots/dictionary-source-with-roots.csv`, but `roots` is replaced with `root` and `root_IPM` is added
+- only lemmas with one `root` are included
+- exception: if a row has multiple roots but all of them are homonym variants of the same base root, the row is split into multiple rows, one per `root`
+- only the 5000 most frequent roots by `IPM` from `data/roots/root-ipm.csv` are kept
+- for each root, the 10 most frequent lemmas by `IPM` are kept
+- if a lemma belongs to the global top 5000 by `IPM` across the whole dictionary, it is included even above the limit of 10 rows per root
+- if the same `Lemma` + `root` pair appears in multiple rows, only the row with the highest `IPM` is kept
+- final ordering is:
+  - rows grouped by `root`
+  - root groups sorted by descending `root_IPM`
+  - rows inside each group sorted by descending `IPM`
+
+### 2. Filling attributes with LLM
+
+#### 2.1. `02-01-build-llm-attributes.ts`
+Builds:
+- `data/attributes/llm-attributes.original.csv`
+
+Reads:
+- `data/attributes/dictionary-top.csv`
+
+Step logic:
+- takes only `Number` and `Lemma` from `dictionary-top.csv`
+- adds empty `imageability`, `emotional_valence`, and `is_profane` columns
+- preserves the row order from `dictionary-top.csv`
+
+#### 2.2. `02-02-split-llm-attributes.ts`
+Builds:
+- `.original.csv` files under `data/attributes/llm-attributes.chunks/`
+
+Reads:
+- `data/attributes/llm-attributes.original.csv`
+
+Step logic:
+- splits the prepared CSV into independent parts for manual LLM runs
+- creates one source file for each part
+
+### 2.3. `02-03-prompt-llm-attributes.md`
+Prompt instructions for the LLM step.
+
+Important:
+- the LLM fills only `imageability`, `emotional_valence`, and `is_profane`
+- each row is judged independently from the word itself
+- the LLM does not change the CSV structure and does not add new fields
+
+### 2.4. `02-04-merge-llm-attributes.ts`
+Builds:
+- `data/attributes/llm-attributes.llm.csv`
+
+Reads:
+- filled `.llm.csv` files from `data/attributes/llm-attributes.chunks/`
+
+Step logic:
+- merges the completed parts back into one file
+- checks chunk header consistency
+
+### 2.5. `02-05-validate-llm-attributes.ts`
+Checks:
+- `data/attributes/llm-attributes.llm.csv`
+
+Step logic:
+- ensures no rows were lost
+- ensures `Number` and `Lemma` were not changed
+- ensures original row order was preserved
+- checks that `imageability`, `emotional_valence`, and `is_profane` are filled
+- checks allowed values:
+  - `imageability`: `1`–`5`
+  - `emotional_valence`: `1`–`5`
+  - `is_profane`: `0` or `1`
+
+### 3. `03-build-dictionary-top-with-attributes.ts`
+Builds:
+- `data/attributes/dictionary-top-with-attributes.csv`
+
+Reads:
+- `data/attributes/dictionary-top.csv`
+- `data/attributes/llm-attributes.llm.csv`
+
+Step logic:
+- takes all rows from `dictionary-top.csv`
+- attaches `imageability`, `emotional_valence`, and `is_profane`
+- checks that rows match between the two input files
+- preserves original order and all fields from `dictionary-top.csv`
+
+### 4. Attributes for manually selected lemmas
+
+Source file:
+- `data/attributes/extra-lemmas-llm-attributes.original.csv`
+
+It contains `Number` and `Lemma`, plus empty `imageability`, `emotional_valence`, and `is_profane` fields.
+
+#### 4.1. Filling with LLM
+
+Builds:
+- `data/attributes/extra-lemmas-llm-attributes.llm.csv`
+
+Use `02-03-prompt-llm-attributes.md` for this step. In a copy of the prompt, change only the input and output file names:
+- input: `extra-lemmas-llm-attributes.original.csv`
+- output: `extra-lemmas-llm-attributes.llm.csv`
+
+Keep all other prompt instructions unchanged.
+
+#### 4.2. `04-build-extra-lemmas-with-attributes.ts`
+
+Builds:
+- `data/attributes/extra-lemmas-with-attributes.csv`
+
+Reads:
+- `data/attributes/extra-lemmas-llm-attributes.original.csv`
+- `data/attributes/extra-lemmas-llm-attributes.llm.csv`
+- `data/roots/dictionary-source-with-roots.csv`
+- `data/roots/root-ipm.csv`
+
+Step logic:
+- checks the headers, row counts, `Number`, `Lemma`, and row order in both LLM attribute files
+- checks the allowed values for `imageability`, `emotional_valence`, and `is_profane`
+- finds the source dictionary row for each word in `dictionary-source-with-roots.csv` by `Number`
+- copies `PoS`, `IPM`, `R`, `D`, `Doc`, and the root list from the source dictionary while preserving the manually selected form in `Lemma`
+- takes `root_IPM` from `root-ipm.csv` for a single-root lemma and sums the `IPM` values of all roots for a multi-root lemma
+- attaches the filled attributes and creates a file with the same fields in the same order as `dictionary-top-with-attributes.csv`
+
+### 5. Manual edits to `dictionary-top-with-attributes.csv`
+After the build step, the final file is manually refined here:
+- `data/attributes/dictionary-top-with-attributes.csv`
+
+At this step:
+- some LLM field values in `imageability`, `emotional_valence`, and `is_profane` are corrected
+
+
+## Running order
+
+Install local dependencies once:
+
+```bash
+cd pipelines/attributes
+npm install
+```
+
+Then run:
+
+```bash
+node 01-build-dictionary-top.ts
+node 02-01-build-llm-attributes.ts
+node 02-02-split-llm-attributes.ts
+```
+
+Then fill the `*.llm.csv` files in `data/attributes/llm-attributes.chunks/`
+using `02-03-prompt-llm-attributes.md`.
+
+Then continue:
+
+```bash
+node 02-04-merge-llm-attributes.ts
+node 02-05-validate-llm-attributes.ts
+node 03-build-dictionary-top-with-attributes.ts
+```
+
+For the manually selected lemmas, fill
+`data/attributes/extra-lemmas-llm-attributes.llm.csv` using
+`02-03-prompt-llm-attributes.md`, changing only the input and output file names.
+Then run:
+
+```bash
+node 04-build-extra-lemmas-with-attributes.ts
+```
+
+After that, if needed, apply manual edits to
+`data/attributes/dictionary-top-with-attributes.csv`.
