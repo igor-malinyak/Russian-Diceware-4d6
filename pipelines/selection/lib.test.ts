@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describe, test } from 'node:test';
 
 import {
   computeFinalRankingScore,
@@ -15,23 +15,29 @@ const inputs = {
   isProfane: 0,
 };
 
-test('computes the final score without the lemma-length factor', () => {
-  assert.equal(computeFinalRankingScore(inputs), 200);
+describe('computeFinalRankingScore', () => {
+  test('computes the score without the lemma-length factor', () => {
+    assert.equal(computeFinalRankingScore(inputs), 200);
+  });
+
+  test('rejects a non-finite score', () => {
+    assert.throws(
+      () => computeFinalRankingScore({ ...inputs, lemmaIpm: Number.POSITIVE_INFINITY }),
+      /Final ranking score is not finite/u,
+    );
+  });
 });
 
-test('applies the lemma-length factor only to the initial score', () => {
-  assert.equal(computeRankingScore(inputs, 4), 800);
-  assert.equal(computeRankingScore(inputs, 12), 200);
+describe('computeRankingScore', () => {
+  test('applies the lemma-length factor only to the initial score', () => {
+    assert.equal(computeRankingScore(inputs, 4), 800);
+    assert.equal(computeRankingScore(inputs, 12), 200);
+  });
 });
 
-test('formats scores with up to six decimal places', () => {
-  assert.equal(formatRankingScore(200), '200');
-  assert.equal(formatRankingScore(1.2345678), '1.234568');
-});
-
-test('rejects a non-finite score in the scoring function', () => {
-  assert.throws(
-    () => computeFinalRankingScore({ ...inputs, lemmaIpm: Number.POSITIVE_INFINITY }),
-    /Final ranking score is not finite/u,
-  );
+describe('formatRankingScore', () => {
+  test('formats scores with up to six decimal places', () => {
+    assert.equal(formatRankingScore(200), '200');
+    assert.equal(formatRankingScore(1.2345678), '1.234568');
+  });
 });
