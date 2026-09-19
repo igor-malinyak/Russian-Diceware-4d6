@@ -140,12 +140,25 @@ applies to `е`: it becomes `ye` immediately after `ь` or `ъ`, and `e` everywh
 
 ## Running order
 
-Install local dependencies once:
+### 1. Install Node.js once
+
+Install [Node.js 24](https://nodejs.org/en/download) with npm and check the versions:
+
+```bash
+node --version
+npm --version
+```
+
+### 2. Install script dependencies once
+
+From the repository root:
 
 ```bash
 cd pipelines/wordlist
-npm install
+npm ci
 ```
+
+### 3. Run the steps
 
 Then run step 1:
 

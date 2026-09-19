@@ -307,12 +307,25 @@ Counting rule:
 
 ## Run order
 
-Install local dependencies once:
+### 1. Install Node.js once
+
+Install [Node.js 24](https://nodejs.org/en/download) with npm and check the versions:
+
+```bash
+node --version
+npm --version
+```
+
+### 2. Install script dependencies once
+
+From the repository root:
 
 ```bash
 cd pipelines/roots
-npm install
+npm ci
 ```
+
+### 3. Run the steps
 
 Then run the pipeline:
 

@@ -185,12 +185,25 @@ cp data/selection/final-candidates-selected-1296.csv data/selection/final-candid
 
 ## Порядок запуска
 
-Один раз установить локальные зависимости:
+### 1. Один раз установить Node.js
+
+Установить [Node.js 24](https://nodejs.org/en/download) с npm и проверить версии:
+
+```bash
+node --version
+npm --version
+```
+
+### 2. Один раз установить зависимости скриптов
+
+Из корня репозитория:
 
 ```bash
 cd pipelines/selection
-npm install
+npm ci
 ```
+
+### 3. Выполнить шаги
 
 Затем выполнить шаг 1:
 
