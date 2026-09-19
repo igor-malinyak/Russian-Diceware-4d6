@@ -19,6 +19,8 @@
 /
 ├── data/
 │   ├── external/
+│   │   └── fonts/
+│   ├── dictionary/
 │   ├── attributes/
 │   ├── roots/
 │   ├── selection/
@@ -27,7 +29,8 @@
     ├── attributes/
     ├── roots/
     ├── selection/
-    └── wordlist/
+    ├── wordlist/
+    └── dictionary/
 ```
 
 ## Что где лежит

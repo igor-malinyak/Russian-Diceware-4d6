@@ -31,3 +31,7 @@ This directory contains external data used by the project. The origin of each fi
 - Source description: a repository with code for neural morpheme segmentation of Russian words.
 - Direct link to the file: [train_Tikhonov_reformat.txt](https://github.com/AlexeySorokin/NeuralMorphemeSegmentation/blob/master/data/train_Tikhonov_reformat.txt)
 - File description: a training dataset derived from A. N. Tikhonov's morphological dictionary.
+
+## Fonts
+
+`fonts/` contains the fonts used to build the dictionary PDF and their licenses. See [font sources and versions](fonts/README.md).

@@ -31,3 +31,7 @@
 - Описание источника: репозиторий с кодом для нейросетевого разбиения русских слов на морфемы.
 - Ссылка на файл: [train_Tikhonov_reformat.txt](https://github.com/AlexeySorokin/NeuralMorphemeSegmentation/blob/master/data/train_Tikhonov_reformat.txt)
 - Что содержит файл: обучающая выборка, полученная из морфологического словаря А. Н. Тихонова.
+
+## Шрифты
+
+В `fonts/` находятся шрифты для сборки PDF словаря и их лицензии. См. [источники и версии шрифтов](fonts/README.ru.md).

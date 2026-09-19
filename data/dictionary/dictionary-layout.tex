@@ -1,0 +1,294 @@
+% --- Packages and PDF configuration ---
+
+\usepackage[a5paper,left=12mm,right=12mm,top=12mm,bottom=6mm,includefoot,footskip=8mm]{geometry}
+\usepackage{fontspec}
+\usepackage{babel}
+\babelprovide[import]{russian}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\hypersetup{
+  unicode=true,
+  pdfpagelayout=TwoColumnRight,
+  colorlinks=false,
+  pdfborder={0 0 0}
+}
+
+% PDF outline hierarchy matches the unnumbered document sections.
+\makeatletter
+\def\toclevel@section{0}
+\def\toclevel@subsection{1}
+\makeatother
+
+% --- Common configuration and styles ---
+
+% Fonts
+\setmainfont{golostext-400.ttf}[Path=fonts/,Ligatures=NoCommon]
+\newfontfamily\GolosText{golostext-400.ttf}[Path=fonts/,Ligatures=NoCommon]
+\newfontfamily\GolosTextMedium{golostext-500.ttf}[Path=fonts/,Ligatures=NoCommon]
+\newfontfamily\JetBrainsMono{jetbrainsmono-400.ttf}[Path=fonts/,Ligatures=NoCommon]
+\newfontfamily\TablerDice{tabler-300.ttf}[Path=fonts/]
+
+% Colors
+\definecolor{rulegray}{gray}{0.60}
+
+% Page style
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{{\GolosText\fontsize{9}{11.2}\selectfont\thepage}}
+
+% Paragraph style
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5.5pt}
+\newlength{\ParagraphSpacing}
+\setlength{\ParagraphSpacing}{\parskip}
+\newcommand{\ParagraphStyle}{%
+  \GolosText\fontsize{9}{12}\selectfont\raggedright
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{\ParagraphSpacing}}
+
+% Heading spacing
+\newlength{\SectionBeforeSpace}
+\newlength{\SubsectionBeforeSpace}
+\newlength{\SectionAfterSpace}
+\newlength{\SubsectionAfterSpace}
+\setlength{\SectionBeforeSpace}{14pt}
+\setlength{\SubsectionBeforeSpace}{8.5pt}
+\setlength{\SectionAfterSpace}{8.5pt}
+\setlength{\SubsectionAfterSpace}{5.5pt}
+
+% Heading formatting
+\setcounter{secnumdepth}{0}
+\makeatletter
+\renewcommand{\section}{%
+  \@startsection{section}{1}{0pt}%
+    {-\SectionBeforeSpace}{\SectionAfterSpace}%
+    {\GolosTextMedium\fontsize{16}{19}\selectfont\raggedright}}
+\renewcommand{\subsection}{%
+  \@startsection{subsection}{2}{0pt}%
+    {-\SubsectionBeforeSpace}{\SubsectionAfterSpace}%
+    {\GolosTextMedium\fontsize{12}{15}\selectfont\raggedright}}
+\makeatother
+
+% --- Cover ---
+
+\newcommand{\CoverTitle}[1]{%
+  {\GolosTextMedium\fontsize{33}{42}\selectfont #1\par}}
+
+\newcommand{\CoverSubtitle}[1]{%
+  \vspace{28.5pt}
+  {\GolosText\fontsize{13}{16}\selectfont #1\par}}
+
+\newcommand{\CoverEditionLine}[1]{%
+  \vfill
+  {\GolosText\fontsize{9}{12}\selectfont #1\par}}
+
+\NewDocumentEnvironment{Cover}{+b}{%
+  \thispagestyle{empty}
+  \AddToHookNext{shipout/foreground}{%
+    \put(12mm,-12mm){%
+      \begingroup
+      \setlength{\fboxsep}{0pt}%
+      \setlength{\fboxrule}{0.5pt}%
+      \raisebox{-\height}[0pt][0pt]{\color{black}\fbox{%
+        \begin{minipage}[t][\dimexpr\paperheight-24mm-2\fboxrule\relax][t]{\dimexpr\paperwidth-24mm-2\fboxrule\relax}
+          \centering
+          \vspace*{72mm}
+          #1%
+          \vspace*{10mm}
+        \end{minipage}}}%
+      \endgroup}}%
+  \null
+}{}
+
+% --- Contents ---
+
+% Entry spacing
+\newcommand{\ContentsSubentryIndent}{1.5em}
+\newcommand{\ContentsEntryGap}{0.5em}
+\newcommand{\ContentsLeaderStep}{0.55em}
+\setcounter{tocdepth}{2}
+
+% Entry formatting
+\newcommand{\ContentsEntry}[2]{%
+  \noindent#1\nobreak\hspace{\ContentsEntryGap}\color{rulegray}%
+  \leaders\hbox to \ContentsLeaderStep{.\hss}\hfill\hspace{\ContentsEntryGap}\color{black}#2\par}
+\newcommand{\ContentsSubentry}[2]{%
+  \ContentsEntry{\hspace*{\ContentsSubentryIndent}#1}{#2}}
+
+% Automatic contents integration
+\makeatletter
+\renewcommand{\l@section}[2]{\ContentsEntry{#1}{#2}}
+\renewcommand{\l@subsection}[2]{\ContentsSubentry{#1}{#2}}
+
+\newcommand{\ContentsEntries}{%
+  \begingroup
+  \ParagraphStyle
+  \@starttoc{toc}%
+  \endgroup}
+\makeatother
+
+% --- Dictionary description ---
+
+% Paragraph alignment and hyphenation
+\newcommand{\ParagraphAlignment}{%
+  \selectlanguage{russian}%
+  \rightskip=0pt plus 2em
+  \parfillskip=0pt plus 1fil
+  \spaceskip=\fontdimen2\font
+  \xspaceskip=0pt
+  \tolerance=500
+  \hyphenpenalty=500
+  \doublehyphendemerits=5000
+  \finalhyphendemerits=5000
+  \lefthyphenmin=3
+  \righthyphenmin=3\relax}
+
+\newcommand{\TextParagraph}[1]{%
+  \begingroup
+  \ParagraphStyle
+  \ParagraphAlignment
+  #1\par
+  \endgroup}
+
+% Lists
+\newlength{\ListIndent}
+
+\newenvironment{List}{%
+  \ParagraphStyle
+  \setlength{\ListIndent}{2.5em}%
+  \par\addvspace{\ParagraphSpacing}%
+  \setlength{\parskip}{0pt}%
+}{\par}
+
+\newcommand{\NumberedItem}[2]{%
+  \noindent\hangindent=\ListIndent\hangafter=1
+  \makebox[\ListIndent][r]{#1.\hspace{0.25em}}#2\par}
+\newcommand{\BulletItem}[1]{%
+  \noindent\hangindent=\ListIndent\hangafter=1
+  \makebox[\ListIndent][r]{\textbullet\hspace{0.4em}}#1\par}
+
+% --- Dictionary table ---
+
+% Dimensions and alignment parameters
+\setlength{\arrayrulewidth}{0.3pt}
+\arrayrulecolor{rulegray}
+\newlength{\TableHeaderAfterSpace}
+\setlength{\TableHeaderAfterSpace}{0.2mm}
+\newlength{\TableColumnPadding}
+\setlength{\TableColumnPadding}{1.15mm}
+\newlength{\TableRowHeight}
+\newlength{\TableRowDepth}
+\newlength{\TableDiceVerticalGap}
+\newlength{\TableCapitalHeight}
+\newlength{\TableTextLift}
+\newlength{\TableDiceLeftShift}
+\setlength{\TableRowHeight}{5.87mm}
+\setlength{\TableRowDepth}{1.5mm}
+
+% Align the visible left contour of the die frame with the left contour of «К».
+% The value includes the two fonts' measured side bearings at their output sizes.
+\setlength{\TableDiceLeftShift}{-0.198524mm}
+\newsavebox{\TableCapitalReferenceBox}
+\newsavebox{\TableDiceReferenceBox}
+
+% Reference measurements and vertical alignment
+\newcommand{\TableInitializeVerticalAlignment}{%
+  \sbox{\TableCapitalReferenceBox}{{\GolosText\fontsize{9}{11.2}\selectfont H}}%
+  \setlength{\TableCapitalHeight}{\ht\TableCapitalReferenceBox}%
+  \setlength{\TableDiceVerticalGap}{\dimexpr\TableRowHeight/2-2.25mm\relax}%
+  \setlength{\TableTextLift}{\dimexpr\TableRowHeight/2-\TableRowDepth-\TableCapitalHeight/2\relax}}
+
+% Dice rendering
+\newcommand{\TableDiceSymbol}[1]{%
+  \ifnum#1<1
+    \PackageError{dictionary}{Dice value #1 is below 1}{}
+  \else
+    \ifnum#1>6
+      \PackageError{dictionary}{Dice value #1 is above 6}{}
+    \else
+      \char\numexpr"F08A+#1\relax
+    \fi
+  \fi}
+
+\newcommand{\TableDiceGlyph}[1]{%
+  \begingroup
+  \sbox{\TableDiceReferenceBox}{\resizebox*{!}{4.5mm}{%
+    \TablerDice
+    \TableDiceSymbol{#1}}}%
+  \raisebox{\dimexpr-\TableRowDepth+\TableDiceVerticalGap+\dp\TableDiceReferenceBox\relax}[0pt][0pt]{\usebox{\TableDiceReferenceBox}}%
+  \endgroup}
+
+\newcommand{\TableDiceGlyphBox}[1]{\makebox[5mm][l]{\hspace*{\TableDiceLeftShift}\TableDiceGlyph{#1}}}
+
+\newcommand{\TableDiceHeader}[1]{%
+  \TableHeaderFont\hspace*{0.04mm}#1}
+
+% Search and copy support in PDF
+\newcommand{\TableDiceUnicodeHex}[1]{%
+  \ifcase#1\or 2680\or 2681\or 2682\or 2683\or 2684\or 2685\fi}
+
+\newcommand{\TableDiceActualTextStart}[4]{%
+  \begingroup
+  \edef\TableDiceActualTextCommand{\endgroup
+    \noexpand\pdfextension literal direct
+    {/Span << /ActualText <FEFF\TableDiceUnicodeHex{#1}\TableDiceUnicodeHex{#2}\TableDiceUnicodeHex{#3}\TableDiceUnicodeHex{#4}> >> BDC}}%
+  \TableDiceActualTextCommand}
+
+\newcommand{\TableDiceSearchText}[1]{%
+  \makebox[0pt][l]{%
+    \pdfextension literal direct {3 Tr}%
+    {\JetBrainsMono\fontsize{9}{11.2}\selectfont #1}%
+    \pdfextension literal direct {0 Tr}}}
+
+\newcommand{\TableDice}[1]{\expandafter\TableDiceFour#1\TableDiceEnd}
+\def\TableDiceFour#1#2#3#4\TableDiceEnd{%
+  \TableDiceSearchText{#1#2#3#4}%
+  \TableDiceActualTextStart{#1}{#2}{#3}{#4}%
+  \TableDiceGlyphBox{#1}\TableDiceGlyphBox{#2}\TableDiceGlyphBox{#3}\TableDiceGlyphBox{#4}%
+  \pdfextension literal direct {EMC}}
+
+% Cells, rows and header
+\newcommand{\TableBodyFont}{\GolosText\fontsize{9}{11.2}\selectfont}
+\newcommand{\TableHeaderFont}{\GolosText\fontsize{8}{10}\selectfont}
+\newcommand{\TableMonospaceFont}{\JetBrainsMono\fontsize{9}{11.2}\selectfont}
+\newcommand{\TableRowStrut}{\rule[-\TableRowDepth]{0pt}{\TableRowHeight}}
+\newcommand{\TableTextCell}[1]{\raisebox{\TableTextLift}[0pt][0pt]{{\TableBodyFont\mbox{#1}}}}
+\newcommand{\TableMonospaceCell}[1]{\raisebox{\TableTextLift}[0pt][0pt]{{\TableMonospaceFont\mbox{#1}}}}
+
+\newcommand{\TableDataRow}[6][]{%
+  \TableRowStrut\mbox{\raisebox{\dimexpr\TableRowHeight-\TableRowDepth\relax}[0pt][0pt]{#1}\TableDice{#2}} &
+  \TableTextCell{#3} &
+  \TableTextCell{#4} &
+  \TableMonospaceCell{#5} &
+  \TableMonospaceCell{#6}\\\hline}
+
+\newcommand{\TableHeader}[5]{%
+  \TableDiceHeader{#1} &
+  {\TableHeaderFont #2} &
+  {\TableHeaderFont #3} &
+  {\TableHeaderFont #4} &
+  {\TableHeaderFont #5}\\[\TableHeaderAfterSpace]\hline
+  \endhead}
+
+% Table environment and spread positioning
+\newcommand{\TableStartOnLeftPage}{%
+  \clearpage
+  \ifodd\value{page}
+    \thispagestyle{empty}\null\clearpage
+  \fi}
+
+\newenvironment{DictionaryTable}{%
+  \setlength{\tabcolsep}{\TableColumnPadding}%
+  \setlength{\LTleft}{0pt}%
+  \setlength{\LTright}{0pt}%
+  \setlength{\LTpre}{0pt}%
+  \setlength{\LTpost}{0pt}%
+  \begin{longtable}{@{\extracolsep{\fill}}p{25mm}p{30mm}p{30mm}p{16.5mm}p{10mm}@{}}
+}{\end{longtable}}

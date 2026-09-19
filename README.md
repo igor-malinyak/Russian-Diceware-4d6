@@ -19,6 +19,8 @@ The repository contains dictionary inputs and production materials. Published PD
 /
 ├── data/
 │   ├── external/
+│   │   └── fonts/
+│   ├── dictionary/
 │   ├── attributes/
 │   ├── roots/
 │   ├── selection/
@@ -27,7 +29,8 @@ The repository contains dictionary inputs and production materials. Published PD
     ├── attributes/
     ├── roots/
     ├── selection/
-    └── wordlist/
+    ├── wordlist/
+    └── dictionary/
 ```
 
 ## What goes where
