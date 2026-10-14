@@ -7,8 +7,16 @@ import { fileURLToPath } from "node:url"
 import { parse } from "csv-parse/sync"
 import { stringify } from "csv-stringify/sync"
 import escapeLatex from "escape-latex"
-import { describeArtifact, nextVersion, readRegistry, releaseTag, sha256, wordlistFingerprint } from "./lib.ts"
-import type { ReleaseRegistry, ReleaseVersion } from "./lib.ts"
+import {
+  describeArtifact,
+  dictionaryBasename,
+  nextVersion,
+  readReleaseRecord,
+  releaseTag,
+  sha256,
+  wordlistFingerprint,
+} from "./lib.ts"
+import type { ReleaseRecord, ReleaseVersion } from "./lib.ts"
 
 type WordlistRow = {
   Dices: string
@@ -22,7 +30,6 @@ type Snapshot = Map<string, Buffer>
 
 const fonts = ["golostext-400.ttf", "golostext-500.ttf", "jetbrainsmono-400.ttf", "tabler-300.ttf"]
 const licenses = ["Golos-Text-OFL.txt", "JetBrains-Mono-OFL.txt", "Tabler-Icons-LICENSE.txt"]
-const basename = "russian-diceware-4d6"
 
 export function readWordlist(csv: Buffer): { rows: WordlistRow[], tsv: string, wordlistSha256: string } {
   const records = parse(csv, { bom: true, skip_empty_lines: true }) as string[][]
@@ -101,7 +108,7 @@ async function validateLayout(workDirectory: string): Promise<void> {
 async function readSourceFiles(repositoryRoot: string): Promise<Snapshot> {
   const paths = [
     "data/wordlist/wordlist.csv",
-    "data/dictionary/releases.json",
+    "data/dictionary/last-release.json",
     "data/dictionary/dictionary.tex",
     "data/dictionary/dictionary-layout.tex",
     ...fonts.map((font) => "data/external/fonts/" + font),
@@ -139,8 +146,8 @@ async function currentCommit(repositoryRoot: string): Promise<string | null> {
   }
 }
 
-export function selectVersion(registry: ReleaseRegistry, wordlistSha256: string): ReleaseVersion {
-  const lastRelease = registry.releases.at(-1)
+export function selectVersion(releaseRecord: ReleaseRecord, wordlistSha256: string): ReleaseVersion {
+  const lastRelease = releaseRecord.lastRelease
   return lastRelease ? nextVersion(lastRelease, wordlistSha256) : { edition: 1, revision: 1 }
 }
 
@@ -153,8 +160,8 @@ export async function buildLocalRelease(repositoryRoot: string) {
     const snapshot = await readSourceFiles(repositoryRoot)
     const csv = snapshot.get("data/wordlist/wordlist.csv")!
     const wordlist = readWordlist(csv)
-    const registry = readRegistry(snapshot.get("data/dictionary/releases.json")!.toString("utf8"))
-    const version = selectVersion(registry, wordlist.wordlistSha256)
+    const releaseRecord = readReleaseRecord(snapshot.get("data/dictionary/last-release.json")!.toString("utf8"))
+    const version = selectVersion(releaseRecord, wordlist.wordlistSha256)
     const commit = await currentCommit(repositoryRoot)
     workDirectory = await prepareBuildWorkspace(snapshot, version)
     console.log("Building " + releaseTag(version) + ". Working directory: " + workDirectory)
@@ -163,7 +170,7 @@ export async function buildLocalRelease(repositoryRoot: string) {
     await validateLayout(workDirectory)
     await rm(outputDirectory, { recursive: true, force: true })
     await mkdir(outputDirectory)
-    const names = [basename + ".pdf", basename + ".csv", basename + ".tsv"]
+    const names = [dictionaryBasename + ".pdf", dictionaryBasename + ".csv", dictionaryBasename + ".tsv"]
     await copyFile(join(workDirectory, "build/dictionary.pdf"), join(outputDirectory, names[0]))
     await writeFile(join(outputDirectory, names[1]), csv)
     await writeFile(join(outputDirectory, names[2]), wordlist.tsv)

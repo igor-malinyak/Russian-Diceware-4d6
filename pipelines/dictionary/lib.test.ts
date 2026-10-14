@@ -1,30 +1,26 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import { parse } from "csv-parse/sync"
-import { readRegistry, releaseTag, sha256, wordlistFingerprint } from "./lib.ts"
+import { readReleaseRecord, releaseTag, sha256, wordlistFingerprint } from "./lib.ts"
 import { selectVersion } from "./01-build-dictionary.ts"
 
 const hash = sha256("dictionary")
 const changed = sha256("changed")
-const registry = (releases: unknown[]) => readRegistry(JSON.stringify({ releases }))
+const releaseRecord = (lastRelease: unknown) => readReleaseRecord(JSON.stringify({ lastRelease }))
 
 describe("selectVersion", () => {
   test("starts at ed1-rev1 when no releases have been published", () => {
-    assert.deepEqual(selectVersion(registry([]), hash), { edition: 1, revision: 1 })
+    assert.deepEqual(selectVersion(releaseRecord(null), hash), { edition: 1, revision: 1 })
   })
 
   test("increments revision for unchanged data and edition for changed data", () => {
-    const published = registry([{ edition: 1, revision: 1, wordlistSha256: hash }])
+    const published = releaseRecord({ edition: 1, revision: 1, wordlistSha256: hash })
     assert.equal(releaseTag(selectVersion(published, hash)), "ed1-rev2")
     assert.equal(releaseTag(selectVersion(published, changed)), "ed2-rev1")
   })
 
-  test("does not mutate the registry or increase the version across repeated selections", () => {
-    const published = registry([
-      { edition: 1, revision: 1, wordlistSha256: hash },
-      { edition: 1, revision: 2, wordlistSha256: hash },
-      { edition: 2, revision: 1, wordlistSha256: changed },
-    ])
+  test("does not mutate the release record or increase the version across repeated selections", () => {
+    const published = releaseRecord({ edition: 2, revision: 1, wordlistSha256: changed })
     const before = JSON.stringify(published)
     assert.equal(releaseTag(selectVersion(published, changed)), "ed2-rev2")
     assert.equal(releaseTag(selectVersion(published, changed)), "ed2-rev2")
@@ -49,17 +45,25 @@ describe("wordlistFingerprint", () => {
   })
 })
 
-describe("readRegistry", () => {
-  test("rejects malformed or inconsistent release histories", () => {
-    assert.throws(() => readRegistry("{}"))
-    for (const releases of [
-      [{ edition: 0, revision: 1, wordlistSha256: hash }],
-      [{ edition: 1, revision: 1, wordlistSha256: "broken" }],
-      [{ edition: 1, revision: 2, wordlistSha256: hash }],
-      [{ edition: 1, revision: 1, wordlistSha256: hash }, { edition: 1, revision: 2, wordlistSha256: changed }],
-      [{ edition: 1, revision: 1, wordlistSha256: hash }, { edition: 2, revision: 1, wordlistSha256: hash }],
+describe("readReleaseRecord", () => {
+  test("reads only the last release without requiring its history", () => {
+    assert.deepEqual(releaseRecord(null), { lastRelease: null })
+    const lastRelease = { edition: 12, revision: 8, wordlistSha256: hash }
+    assert.deepEqual(releaseRecord(lastRelease), { lastRelease })
+  })
+
+  test("rejects missing or malformed last-release records", () => {
+    assert.throws(() => readReleaseRecord("{}"))
+    assert.throws(() => readReleaseRecord(JSON.stringify({ releases: [] })))
+    for (const lastRelease of [
+      {},
+      [],
+      { edition: 0, revision: 1, wordlistSha256: hash },
+      { edition: 1, revision: 0, wordlistSha256: hash },
+      { edition: 1.5, revision: 1, wordlistSha256: hash },
+      { edition: 1, revision: 1, wordlistSha256: "broken" },
     ]) {
-      assert.throws(() => registry(releases))
+      assert.throws(() => releaseRecord(lastRelease))
     }
   })
 })
