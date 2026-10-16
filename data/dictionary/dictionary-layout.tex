@@ -27,11 +27,15 @@
 % --- Common configuration and styles ---
 
 % Fonts
-\setmainfont{golostext-400.ttf}[Path=fonts/,Ligatures=NoCommon]
-\newfontfamily\GolosText{golostext-400.ttf}[Path=fonts/,Ligatures=NoCommon]
+% Golos Text has no italic face. Use an explicit oblique for emphasis.
+\setmainfont{golostext-400.ttf}[Path=fonts/,Ligatures=NoCommon,
+  ItalicFont=golostext-400.ttf,ItalicFeatures={FakeSlant}]
+\newfontfamily\GolosText{golostext-400.ttf}[Path=fonts/,Ligatures=NoCommon,
+  ItalicFont=golostext-400.ttf,ItalicFeatures={FakeSlant}]
 \newfontfamily\GolosTextMedium{golostext-500.ttf}[Path=fonts/,Ligatures=NoCommon]
 \newfontfamily\JetBrainsMono{jetbrainsmono-400.ttf}[Path=fonts/,Ligatures=NoCommon]
 \newfontfamily\TablerDice{tabler-300.ttf}[Path=fonts/]
+\urlstyle{same}
 
 % Colors
 \definecolor{rulegray}{gray}{0.60}
@@ -119,6 +123,31 @@
   \null
 }{}
 
+% --- Publication details ---
+
+\newlength{\ImprintBlockSpace}
+\setlength{\ImprintBlockSpace}{\dimexpr\ParagraphSpacing+3pt\relax}
+
+\newenvironment{Imprint}{%
+  \thispagestyle{empty}%
+  \ParagraphStyle
+  \ParagraphAlignment
+}{\par}
+
+% Dedicated imprint typography uses paragraph spacing and its own block spacing.
+% The following paragraph supplies the gap after titles and labels exactly once.
+\newcommand{\ImprintTitle}[1]{%
+  {\GolosTextMedium\fontsize{12}{15}\selectfont #1\par}\nobreak}
+\newcommand{\ImprintLabel}[1]{%
+  \par\addvspace{\ImprintBlockSpace}%
+  {\GolosTextMedium #1\par}\nobreak}
+
+\newenvironment{ImprintBlock}{%
+  \par\addvspace{\ImprintBlockSpace}%
+}{\par}
+
+\newcommand{\ImprintText}[1]{#1\par}
+
 % --- Contents ---
 
 % Entry spacing
@@ -170,6 +199,11 @@
   #1\par
   \endgroup}
 
+% Place reference link targets above the first line so it remains visible after navigation.
+\makeatletter
+\newcommand{\ReferenceTarget}[1]{\Hy@raisedlink{\hypertarget{#1}{}}}
+\makeatother
+
 % Lists
 \newlength{\ListIndent}
 \newcommand{\NumberedLabelSep}{0.25em}
@@ -207,6 +241,31 @@
 \newcommand{\BulletItem}[1]{%
   \setlength{\labelsep}{0.4em}%
   \item[\textbullet]#1\par}
+
+% Standard block spacing uses one shared topsep above and below the table.
+\newlength{\TransliterationBlockGap}
+\newlength{\TransliterationColumnGap}
+\setlength{\TransliterationBlockGap}{7mm}
+\setlength{\TransliterationColumnGap}{4mm}
+
+\newenvironment{TransliterationTable}{%
+  \ParagraphStyle
+  \setlength{\topsep}{\ParagraphSpacing}%
+  \setlength{\partopsep}{0pt}%
+  \begin{trivlist}%
+  \item\relax
+  \renewcommand{\arraystretch}{1.2}%
+  \noindent\ignorespaces
+}{\unskip\end{trivlist}}
+
+\newcommand{\TextTableHeading}[1]{{\GolosTextMedium #1}}
+
+\newenvironment{TransliterationBlock}{%
+  \begin{tabular}[t]{@{}l@{\hspace{\TransliterationColumnGap}}l@{}}%
+    \TextTableHeading{Буква} & \TextTableHeading{Запись}\\[\TableHeaderAfterSpace]\hline
+}{\end{tabular}}
+
+\newcommand{\TransliterationRow}[2]{#1 & #2\\\hline}
 
 % --- Dictionary table ---
 
