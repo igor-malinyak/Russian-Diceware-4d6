@@ -45,9 +45,9 @@
 
 % Paragraph style
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{5.5pt}
 \newlength{\ParagraphSpacing}
-\setlength{\ParagraphSpacing}{\parskip}
+\setlength{\ParagraphSpacing}{7.5pt}
+\setlength{\parskip}{\ParagraphSpacing}
 \newcommand{\ParagraphStyle}{%
   \GolosText\fontsize{9}{12}\selectfont\raggedright
   \setlength{\parindent}{0pt}%
@@ -58,22 +58,34 @@
 \newlength{\SubsectionBeforeSpace}
 \newlength{\SectionAfterSpace}
 \newlength{\SubsectionAfterSpace}
-\setlength{\SectionBeforeSpace}{14pt}
+\setlength{\SectionBeforeSpace}{12pt}
 \setlength{\SubsectionBeforeSpace}{8.5pt}
-\setlength{\SectionAfterSpace}{8.5pt}
-\setlength{\SubsectionAfterSpace}{5.5pt}
+\setlength{\SectionAfterSpace}{10.5pt}
+\setlength{\SubsectionAfterSpace}{\ParagraphSpacing}
 
 % Heading formatting
+\newcommand{\HeadingStyle}{\GolosTextMedium\raggedright}
 \setcounter{secnumdepth}{0}
 \makeatletter
-\renewcommand{\section}{%
-  \@startsection{section}{1}{0pt}%
+\newcommand{\StartHeading}[6]{%
+  % For consecutive headings, use this heading's before-space instead of
+  % the previous heading's after-space, which standard sectioning retains.
+  \if@nobreak
+    \vskip-\lastskip
+    \vskip-\dimexpr#4\relax
+  \fi
+  \@startsection{#1}{#2}{#3}{#4}{#5}{#6}}
+\newcommand{\SectionHeading}{%
+  \StartHeading{section}{1}{0pt}%
     {-\SectionBeforeSpace}{\SectionAfterSpace}%
-    {\GolosTextMedium\fontsize{16}{19}\selectfont\raggedright}}
+    {\HeadingStyle\fontsize{16}{19}\selectfont}}
+% Major sections start on a new page. Starred sections do not force a page break.
+\renewcommand{\section}{%
+  \@ifstar{\SectionHeading*}{\clearpage\SectionHeading}}
 \renewcommand{\subsection}{%
-  \@startsection{subsection}{2}{0pt}%
+  \StartHeading{subsection}{2}{0pt}%
     {-\SubsectionBeforeSpace}{\SubsectionAfterSpace}%
-    {\GolosTextMedium\fontsize{12}{15}\selectfont\raggedright}}
+    {\HeadingStyle\fontsize{12}{15}\selectfont}}
 \makeatother
 
 % --- Cover ---
@@ -143,8 +155,7 @@
   \parfillskip=0pt plus 1fil
   \spaceskip=\fontdimen2\font
   \xspaceskip=0pt
-  \tolerance=500
-  \hyphenpenalty=500
+  \tolerance=1000
   \doublehyphendemerits=5000
   \finalhyphendemerits=5000
   \lefthyphenmin=3
@@ -154,25 +165,48 @@
   \begingroup
   \ParagraphStyle
   \ParagraphAlignment
+  % Keep each explanatory paragraph on one page without joining adjacent blocks.
+  \interlinepenalty=10000\relax
   #1\par
   \endgroup}
 
 % Lists
 \newlength{\ListIndent}
+\newcommand{\NumberedLabelSep}{0.25em}
 
+\makeatletter
 \newenvironment{List}{%
   \ParagraphStyle
+  \ParagraphAlignment
+  % Standard lists restore rightskip from this register during setup.
+  \@rightskip=\rightskip
+  % Keep lines and items together, leaving the list boundaries breakable.
+  \interlinepenalty=10000\relax
+  \@itempenalty=10000\relax
+  % After a heading, \@nbitem merges its gap with the heading's existing skip.
+  % Preserve the paragraph gap separately, as for a following TextParagraph.
+  \if@nobreak \vskip\parskip \fi
   \setlength{\ListIndent}{2.5em}%
-  \par\addvspace{\ParagraphSpacing}%
-  \setlength{\parskip}{0pt}%
-}{\par}
+  \begin{list}{}{%
+    % The surrounding paragraph spacing already supplies the external gap.
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\leftmargin}{\ListIndent}%
+    \setlength{\rightmargin}{0pt}%
+    \setlength{\itemindent}{0pt}%
+    \setlength{\listparindent}{0pt}%
+    \setlength{\labelwidth}{\dimexpr\ListIndent-\NumberedLabelSep\relax}}%
+}{\end{list}}
+\makeatother
 
 \newcommand{\NumberedItem}[2]{%
-  \noindent\hangindent=\ListIndent\hangafter=1
-  \makebox[\ListIndent][r]{#1.\hspace{0.25em}}#2\par}
+  \setlength{\labelsep}{\NumberedLabelSep}%
+  \item[#1.]#2\par}
 \newcommand{\BulletItem}[1]{%
-  \noindent\hangindent=\ListIndent\hangafter=1
-  \makebox[\ListIndent][r]{\textbullet\hspace{0.4em}}#1\par}
+  \setlength{\labelsep}{0.4em}%
+  \item[\textbullet]#1\par}
 
 % --- Dictionary table ---
 
@@ -265,7 +299,7 @@
 \newcommand{\TableDataRow}[6][]{%
   \TableRowStrut\mbox{\raisebox{\dimexpr\TableRowHeight-\TableRowDepth\relax}[0pt][0pt]{#1}\TableDice{#2}} &
   \TableTextCell{#3} &
-  \TableTextCell{#4} &
+  \TableMonospaceCell{#4} &
   \TableMonospaceCell{#5} &
   \TableMonospaceCell{#6}\\\hline}
 
